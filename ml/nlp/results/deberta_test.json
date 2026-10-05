@@ -1,0 +1,54 @@
+{
+  "accuracy": 0.952,
+  "macro_f1": 0.953,
+  "per_class": {
+    "FALSE_URGENCY": {
+      "precision": 0.917,
+      "recall": 1.0,
+      "f1": 0.957,
+      "support": 11
+    },
+    "CONFIRM_SHAMING": {
+      "precision": 0.909,
+      "recall": 1.0,
+      "f1": 0.952,
+      "support": 10
+    },
+    "NONE": {
+      "precision": 1.0,
+      "recall": 0.905,
+      "f1": 0.95,
+      "support": 21
+    }
+  },
+  "confusion": {
+    "FALSE_URGENCY": {
+      "FALSE_URGENCY": 11,
+      "CONFIRM_SHAMING": 0,
+      "NONE": 0
+    },
+    "CONFIRM_SHAMING": {
+      "FALSE_URGENCY": 0,
+      "CONFIRM_SHAMING": 10,
+      "NONE": 0
+    },
+    "NONE": {
+      "FALSE_URGENCY": 1,
+      "CONFIRM_SHAMING": 1,
+      "NONE": 19
+    }
+  },
+  "samples": 42,
+  "mistakes": [
+    [
+      "No, I'll buy it at the store.",
+      "NONE",
+      "CONFIRM_SHAMING"
+    ],
+    [
+      "Pre-order now",
+      "NONE",
+      "FALSE_URGENCY"
+    ]
+  ]
+}

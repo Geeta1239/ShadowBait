@@ -1,0 +1,69 @@
+{
+  "accuracy": 0.821,
+  "macro_f1": 0.79,
+  "per_class": {
+    "FALSE_URGENCY": {
+      "precision": 1.0,
+      "recall": 0.889,
+      "f1": 0.941,
+      "support": 9
+    },
+    "CONFIRM_SHAMING": {
+      "precision": 1.0,
+      "recall": 0.429,
+      "f1": 0.6,
+      "support": 7
+    },
+    "NONE": {
+      "precision": 0.706,
+      "recall": 1.0,
+      "f1": 0.828,
+      "support": 12
+    }
+  },
+  "confusion": {
+    "FALSE_URGENCY": {
+      "FALSE_URGENCY": 8,
+      "CONFIRM_SHAMING": 0,
+      "NONE": 1
+    },
+    "CONFIRM_SHAMING": {
+      "FALSE_URGENCY": 0,
+      "CONFIRM_SHAMING": 3,
+      "NONE": 4
+    },
+    "NONE": {
+      "FALSE_URGENCY": 0,
+      "CONFIRM_SHAMING": 0,
+      "NONE": 12
+    }
+  },
+  "samples": 28,
+  "mistakes": [
+    [
+      "No, I don't want to get ahead.",
+      "CONFIRM_SHAMING",
+      "NONE"
+    ],
+    [
+      "No thanks, I'd rather not look after my skin.",
+      "CONFIRM_SHAMING",
+      "NONE"
+    ],
+    [
+      "No, I like being overcharged.",
+      "CONFIRM_SHAMING",
+      "NONE"
+    ],
+    [
+      "No, I'll risk losing my data.",
+      "CONFIRM_SHAMING",
+      "NONE"
+    ],
+    [
+      "Grab it before it's gone forever",
+      "FALSE_URGENCY",
+      "NONE"
+    ]
+  ]
+}

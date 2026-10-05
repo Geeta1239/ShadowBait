@@ -1,0 +1,264 @@
+{
+  "accuracy": 0.756,
+  "macro_f1": 0.737,
+  "per_class": {
+    "FALSE_URGENCY": {
+      "precision": 1.0,
+      "recall": 0.782,
+      "f1": 0.878,
+      "support": 55
+    },
+    "CONFIRM_SHAMING": {
+      "precision": 0.875,
+      "recall": 0.42,
+      "f1": 0.568,
+      "support": 50
+    },
+    "NONE": {
+      "precision": 0.637,
+      "recall": 0.96,
+      "f1": 0.766,
+      "support": 75
+    }
+  },
+  "confusion": {
+    "FALSE_URGENCY": {
+      "FALSE_URGENCY": 43,
+      "CONFIRM_SHAMING": 0,
+      "NONE": 12
+    },
+    "CONFIRM_SHAMING": {
+      "FALSE_URGENCY": 0,
+      "CONFIRM_SHAMING": 21,
+      "NONE": 29
+    },
+    "NONE": {
+      "FALSE_URGENCY": 0,
+      "CONFIRM_SHAMING": 3,
+      "NONE": 72
+    }
+  },
+  "samples": 180,
+  "mistakes": [
+    [
+      "No, I don't care about getting a deal.",
+      "CONFIRM_SHAMING",
+      "NONE"
+    ],
+    [
+      "No, I don't want to be healthy.",
+      "CONFIRM_SHAMING",
+      "NONE"
+    ],
+    [
+      "Don't let this deal slip away",
+      "FALSE_URGENCY",
+      "NONE"
+    ],
+    [
+      "Last 2 rooms available at this price",
+      "FALSE_URGENCY",
+      "NONE"
+    ],
+    [
+      "No thanks, I'd rather my order be unprotected.",
+      "CONFIRM_SHAMING",
+      "NONE"
+    ],
+    [
+      "No, I don't want to treat myself.",
+      "CONFIRM_SHAMING",
+      "NONE"
+    ],
+    [
+      "No, I'd rather be unprepared.",
+      "CONFIRM_SHAMING",
+      "NONE"
+    ],
+    [
+      "Book now, this price won't last",
+      "FALSE_URGENCY",
+      "NONE"
+    ],
+    [
+      "No, I'd rather stay broke.",
+      "CONFIRM_SHAMING",
+      "NONE"
+    ],
+    [
+      "No, I don't want my wedding to be perfect.",
+      "CONFIRM_SHAMING",
+      "NONE"
+    ],
+    [
+      "No, I'm fine being left behind.",
+      "CONFIRM_SHAMING",
+      "NONE"
+    ],
+    [
+      "I don't want to save this address.",
+      "NONE",
+      "CONFIRM_SHAMING"
+    ],
+    [
+      "No thanks, I'll pay full price like everyone else.",
+      "CONFIRM_SHAMING",
+      "NONE"
+    ],
+    [
+      "Prices increase in 00:45:12",
+      "FALSE_URGENCY",
+      "NONE"
+    ],
+    [
+      "No thanks, I'm fine with higher prices.",
+      "CONFIRM_SHAMING",
+      "NONE"
+    ],
+    [
+      "Get it now, it won't be available for long",
+      "FALSE_URGENCY",
+      "NONE"
+    ],
+    [
+      "No, I don't want to be rewarded.",
+      "CONFIRM_SHAMING",
+      "NONE"
+    ],
+    [
+      "No, I want to keep overpaying.",
+      "CONFIRM_SHAMING",
+      "NONE"
+    ],
+    [
+      "No, I'm happy to pay more.",
+      "CONFIRM_SHAMING",
+      "NONE"
+    ],
+    [
+      "No thanks, I don't want to improve my life.",
+      "CONFIRM_SHAMING",
+      "NONE"
+    ],
+    [
+      "No, I don't want to protect this file with a password.",
+      "NONE",
+      "CONFIRM_SHAMING"
+    ],
+    [
+      "No thanks, I don't want free shipping.",
+      "CONFIRM_SHAMING",
+      "NONE"
+    ],
+    [
+      "Others are about to buy this - don't wait",
+      "FALSE_URGENCY",
+      "NONE"
+    ],
+    [
+      "No thanks, I don't need to feel secure.",
+      "CONFIRM_SHAMING",
+      "NONE"
+    ],
+    [
+      "No, my privacy isn't important to me.",
+      "CONFIRM_SHAMING",
+      "NONE"
+    ],
+    [
+      "Time is running out!",
+      "FALSE_URGENCY",
+      "NONE"
+    ],
+    [
+      "No, I'll stay unprotected.",
+      "CONFIRM_SHAMING",
+      "NONE"
+    ],
+    [
+      "No thanks, I'm not interested in saving money.",
+      "CONFIRM_SHAMING",
+      "NONE"
+    ],
+    [
+      "No, I don't want to be a smart shopper.",
+      "CONFIRM_SHAMING",
+      "NONE"
+    ],
+    [
+      "Offer valid for the next 15 minutes only",
+      "FALSE_URGENCY",
+      "NONE"
+    ],
+    [
+      "No, I'd rather pay later.",
+      "NONE",
+      "CONFIRM_SHAMING"
+    ],
+    [
+      "I'm okay with missing the best offer.",
+      "CONFIRM_SHAMING",
+      "NONE"
+    ],
+    [
+      "No, I don't mind wasting my money.",
+      "CONFIRM_SHAMING",
+      "NONE"
+    ],
+    [
+      "Don't wait, someone else may take your seat",
+      "FALSE_URGENCY",
+      "NONE"
+    ],
+    [
+      "No, I don't care about my health.",
+      "CONFIRM_SHAMING",
+      "NONE"
+    ],
+    [
+      "No, I don't want to look good.",
+      "CONFIRM_SHAMING",
+      "NONE"
+    ],
+    [
+      "You have 10 minutes to complete your order",
+      "FALSE_URGENCY",
+      "NONE"
+    ],
+    [
+      "Book before midnight to keep this price",
+      "FALSE_URGENCY",
+      "NONE"
+    ],
+    [
+      "No, I'm not into saving money.",
+      "CONFIRM_SHAMING",
+      "NONE"
+    ],
+    [
+      "No, I don't want to get ahead.",
+      "CONFIRM_SHAMING",
+      "NONE"
+    ],
+    [
+      "No thanks, I'd rather not look after my skin.",
+      "CONFIRM_SHAMING",
+      "NONE"
+    ],
+    [
+      "No, I like being overcharged.",
+      "CONFIRM_SHAMING",
+      "NONE"
+    ],
+    [
+      "No, I'll risk losing my data.",
+      "CONFIRM_SHAMING",
+      "NONE"
+    ],
+    [
+      "Grab it before it's gone forever",
+      "FALSE_URGENCY",
+      "NONE"
+    ]
+  ]
+}

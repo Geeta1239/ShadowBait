@@ -1,0 +1,36 @@
+text,label
+I'm okay with missing the best offer.,CONFIRM_SHAMING
+Book before midnight to keep this price,FALSE_URGENCY
+"No, I'll buy it at the store.",NONE
+Checkout,NONE
+Forgot password?,NONE
+Claim your coupon in the next 02:00 or lose it,FALSE_URGENCY
+"No, I don't want to be rewarded.",CONFIRM_SHAMING
+ENDS SOON: up to 70% off,FALSE_URGENCY
+"No, I don't care about getting a deal.",CONFIRM_SHAMING
+"No, I don't want to treat myself.",CONFIRM_SHAMING
+"No thanks, I'll skip the savings and pay more",CONFIRM_SHAMING
+Limited stock available,FALSE_URGENCY
+Only 1 seat remaining on this flight,FALSE_URGENCY
+Rooms are filling up fast for your dates,FALSE_URGENCY
+"No, I'll continue without the discount",CONFIRM_SHAMING
+Add to cart,NONE
+I don't want to receive emails.,NONE
+Over 40 people have this in their cart right now,FALSE_URGENCY
+I don't want to continue.,NONE
+Subscription renews every month,NONE
+I don't want to protect my account.,CONFIRM_SHAMING
+Last updated: March 2025,NONE
+Sign in to continue,NONE
+"No, I don't want to look good.",CONFIRM_SHAMING
+"No, I'd rather miss out on this deal.",CONFIRM_SHAMING
+Almost gone: just 1 left,FALSE_URGENCY
+"No, I'd rather be unprepared.",CONFIRM_SHAMING
+Sale items cannot be returned,NONE
+Get 10% off your first order,NONE
+"No, don't save my payment details",NONE
+Shop now,NONE
+Limited-time price - ends at midnight tonight,FALSE_URGENCY
+"Selling out fast, secure yours now",FALSE_URGENCY
+Last few pieces remaining,FALSE_URGENCY
+Premium Wireless Headphones,NONE
