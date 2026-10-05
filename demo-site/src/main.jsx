@@ -143,15 +143,16 @@ function InspectionPage() {
   const startInspection = () => {
     eventSourceRef.current?.close();
     setCompleted(0); setLiveFindings([]); setApiError(''); setSavedReport(''); setScanMeta(null); setLiveMessage('Connecting to the live Playwright inspection API…'); setRunning(true);
-    const api = window.localStorage.getItem('shadowbait-inspection-api') || 'http://127.0.0.1:5050';
+    const configuredApi = window.localStorage.getItem('shadowbait-inspection-api');
+    const endpoint = configuredApi ? `${configuredApi}/api/inspection/stream` : '/api/inspection/stream';
     const target = window.location.origin;
-    const source = new EventSource(`${api}/api/inspection/stream?target=${encodeURIComponent(target)}`);
+    const source = new EventSource(`${endpoint}?target=${encodeURIComponent(target)}`);
     eventSourceRef.current = source;
     source.addEventListener('started', (event) => { const data = JSON.parse(event.data); setScanMeta(data); setLiveMessage(data.message); });
     source.addEventListener('stage', (event) => { const data = JSON.parse(event.data); setCompleted(data.completed); setLiveMessage(data.message); });
     source.addEventListener('finding', (event) => { const data = JSON.parse(event.data); setCompleted(data.completed); setLiveFindings((items) => [...items, data.finding]); setLiveMessage(data.message); });
     source.addEventListener('complete', (event) => { const data = JSON.parse(event.data); setCompleted(data.completed); setLiveFindings(data.findings || []); setSavedReport(data.report_file || ''); setScanMeta((meta) => ({ ...meta, finished_at: data.finished_at })); setLiveMessage(data.message); setRunning(false); source.close(); });
-    source.addEventListener('error', (event) => { let message = 'Live inspection API could not be reached.'; try { message = JSON.parse(event.data).message; } catch {} setApiError(`${message} Start backend/inspection_server.py on port 5050.`); setLiveMessage('Inspection stopped.'); setRunning(false); source.close(); });
+    source.addEventListener('error', (event) => { let message = 'Live inspection API could not be reached.'; try { message = JSON.parse(event.data).message; } catch {} setApiError(`${message} Start backend/inspection_server.py on port 5050, then reload the page.`); setLiveMessage('Inspection stopped.'); setRunning(false); source.close(); });
   };
   const downloadReport = () => {
     const payload = { generated_at: new Date().toISOString(), mode: 'live Playwright inspection', verified_findings: liveFindings.length ? liveFindings : INSPECTION_FINDINGS };
