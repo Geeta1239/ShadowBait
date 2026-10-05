@@ -84,3 +84,19 @@ Use **Ethical fix view** to switch the same chain to the remediated interface an
 The header includes a **Dark / Light** toggle. The selected theme is stored in `localStorage` under `shadowbait-theme`, so it persists after reloads and across the product, checkout, CCPA Lab, and interactive diff pages.
 
 The product page uses the bundled real headphone photograph at `public/assets/headphones-product.jpg`. It is loaded locally through `/assets/headphones-product.jpg`, so the demo does not depend on an external image host during testing.
+
+## Visible inspection demo
+
+Start the live Playwright inspection API from the repository root:
+
+```bash
+python3 backend/inspection_server.py
+```
+
+Then open `http://localhost:3000/inspect` and click **Start Inspection**. The page streams route, selector, screenshot, CCPA explanation, scan metadata, and saved report events from the real browser scan. The API saves each live scan under `evidence/live-scans/<scan-id>/`.
+
+The **Reset Test State** header action resets donation state, timer, theme, and returns to the Shop page. The `/clean-page` route is a false-positive control; verify it with:
+
+```bash
+python3 scripts/clean_page_check.py
+```

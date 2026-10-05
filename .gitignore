@@ -38,3 +38,6 @@ ml/datasets/processed/*
 *.log
 coverage/
 .pytest_cache/
+# Live Playwright inspection runs are generated locally for demos
+evidence/live-scans/*
+!evidence/live-scans/.gitkeep

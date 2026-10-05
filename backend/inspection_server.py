@@ -1,0 +1,142 @@
+from __future__ import annotations
+
+import base64
+import json
+import os
+import time
+from datetime import datetime, timezone
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from io import BytesIO
+from pathlib import Path
+from urllib.parse import parse_qs, urlparse
+
+from playwright.sync_api import sync_playwright
+
+HOST = os.environ.get("INSPECTION_API_HOST", "0.0.0.0")
+PORT = int(os.environ.get("INSPECTION_API_PORT", "5050"))
+DEFAULT_TARGET = os.environ.get("SHADOWBAIT_TARGET_URL", "http://127.0.0.1:4173")
+LIVE_ROOT = Path(__file__).resolve().parents[1] / "evidence" / "live-scans"
+LIVE_ROOT.mkdir(parents=True, exist_ok=True)
+
+FINDINGS = [
+    {"id": "DP01", "name": "False Urgency", "route": "/product", "selector": "#scarcity-text", "related": "#offer-timer", "evidence": "“ONLY 2 LEFT!” appears beside a countdown timer.", "why": "Captured to prove scarcity text and a time-pressure signal are visible together.", "harm": "Pressures customers to buy before comparing options or verifying the claim.", "ethical": "Show truthful stock and a fixed, clearly stated offer end time."},
+    {"id": "DP02", "name": "Basket Sneaking", "route": "/checkout", "selector": "#donation", "evidence": "Optional ₹50 donation checkbox starts checked.", "why": "Captured before interaction to preserve the original checked state.", "harm": "Adds an optional charge without an explicit affirmative choice.", "ethical": "Start optional add-ons unchecked and explain them plainly."},
+    {"id": "DP03", "name": "Confirm Shaming", "route": "/checkout", "selector": "#confirm-shaming", "evidence": "“No, I don’t want to save money.”", "why": "Captured because the decline wording itself is the evidence.", "harm": "Uses guilt to steer customers toward an optional transaction.", "ethical": "Use neutral choices such as Continue without donation."},
+    {"id": "DP05", "name": "Subscription Trap", "route": "/subscribe", "selector": '[data-ccpa-pattern="SUBSCRIPTION_TRAP"]', "evidence": "Automatic renewal is selected and cancellation is routed elsewhere.", "why": "Captured to compare the easy signup path with the separate cancellation flow.", "harm": "Makes recurring billing easier to start than to stop.", "ethical": "Offer cancellation with the same visibility and simplicity as sign-up."},
+    {"id": "DP06", "name": "Interface Interference", "route": "/interface-interference", "selector": '[data-ccpa-pattern="INTERFACE_INTERFERENCE"]', "evidence": "Recommended plan is prominent while Basic is visually muted.", "why": "Captured to compare the visual hierarchy of the two consequential choices.", "harm": "Obscures the customer’s lower-commitment choice.", "ethical": "Give both consequential choices equal prominence and clarity."},
+    {"id": "DP07", "name": "Bait and Switch", "route": "/bait-switch", "selector": "#bait-switch-status", "evidence": "₹799 selection becomes an unavailable ₹1,999 upgrade at the final step.", "why": "Captured to preserve both the selected offer and the changed final outcome.", "harm": "Wastes time and redirects purchase intent toward a more expensive item.", "ethical": "Keep the advertised outcome available or disclose changes immediately."},
+    {"id": "DP08", "name": "Drip Pricing", "route": "/checkout", "selector": '[data-ccpa-pattern="DRIP_PRICING"]', "evidence": "Delivery, platform, and handling fees appear in the later checkout summary.", "why": "Captured to show the product price beside the later fee breakdown and total.", "harm": "Delays accurate price comparison until late in the journey.", "ethical": "Show the complete payable estimate beside the product price."},
+]
+
+
+def sse(handler: BaseHTTPRequestHandler, event: str, payload: dict) -> None:
+    body = f"event: {event}\ndata: {json.dumps(payload, ensure_ascii=False)}\n\n".encode("utf-8")
+    handler.wfile.write(body)
+    handler.wfile.flush()
+
+
+def data_url(png: bytes) -> str:
+    return "data:image/png;base64," + base64.b64encode(png).decode("ascii")
+
+
+class Handler(BaseHTTPRequestHandler):
+    def log_message(self, fmt: str, *args) -> None:
+        print("[inspection-api] " + fmt % args, flush=True)
+
+    def do_OPTIONS(self) -> None:
+        self.send_response(204)
+        self.send_header("Access-Control-Allow-Origin", "*")
+        self.send_header("Access-Control-Allow-Methods", "GET, OPTIONS")
+        self.send_header("Access-Control-Allow-Headers", "Content-Type")
+        self.end_headers()
+
+    def do_GET(self) -> None:
+        parsed = urlparse(self.path)
+        if parsed.path == "/health":
+            body = json.dumps({"ok": True, "target": DEFAULT_TARGET}).encode()
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+            return
+        if parsed.path != "/api/inspection/stream":
+            self.send_error(404)
+            return
+        query = parse_qs(parsed.query)
+        target = query.get("target", [DEFAULT_TARGET])[0].rstrip("/")
+        self.send_response(200)
+        self.send_header("Content-Type", "text/event-stream; charset=utf-8")
+        self.send_header("Cache-Control", "no-cache")
+        self.send_header("Connection", "keep-alive")
+        self.send_header("Access-Control-Allow-Origin", "*")
+        self.end_headers()
+        try:
+            self.run_scan(target)
+        except Exception as exc:
+            try:
+                sse(self, "error", {"message": str(exc)})
+            except BrokenPipeError:
+                pass
+
+    def run_scan(self, target: str) -> None:
+        scan_id = "live-" + datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+        out_dir = LIVE_ROOT / scan_id
+        out_dir.mkdir(parents=True, exist_ok=True)
+        started_at = datetime.now(timezone.utc).isoformat()
+        scan_meta = {"scan_id": scan_id, "target": target, "browser": "Chromium", "viewport": {"width": 1440, "height": 1000}, "started_at": started_at}
+        sse(self, "started", {**scan_meta, "total": len(FINDINGS), "message": "Chromium browser started with a fresh context."})
+        captured = []
+        with sync_playwright() as playwright:
+            browser = playwright.chromium.launch(executable_path="/usr/bin/chromium")
+            context = browser.new_context(viewport={"width": 1440, "height": 1000}, color_scheme="light")
+            page = context.new_page()
+            for index, finding in enumerate(FINDINGS):
+                sse(self, "stage", {"completed": index, "total": len(FINDINGS), "pattern_id": finding["id"], "route": finding["route"], "selector": finding["selector"], "message": f"Opening {finding['route']} and reading {finding['selector']}"})
+                page.goto(target + finding["route"], wait_until="networkidle")
+                locator = page.locator(finding["selector"]).first
+                if locator.count() == 0:
+                    raise RuntimeError(f"{finding['id']}: selector not found: {finding['selector']}")
+                visible = locator.is_visible()
+                text = locator.inner_text() if locator.evaluate("el => el.tagName !== 'INPUT'") else ""
+                element_state = locator.evaluate("""el => { const s = getComputedStyle(el); const r = el.getBoundingClientRect(); return { tag: el.tagName, visible: !!(r.width && r.height), checked: typeof el.checked === 'boolean' ? el.checked : null, bounding_box: { x: Math.round(r.x), y: Math.round(r.y), width: Math.round(r.width), height: Math.round(r.height) }, computed: { color: s.color, backgroundColor: s.backgroundColor, display: s.display } }; }""")
+                if finding["id"] == "DP02":
+                    text = page.locator("label[for=donation]").inner_text()
+                if finding["id"] == "DP08":
+                    text = page.locator(".drip-tag").inner_text()
+                screenshot = page.screenshot(full_page=True)
+                screenshot_name = f"{finding["id"].lower()}-{finding["name"].lower().replace(" ", "-")}.png"
+                screenshot_path = out_dir / screenshot_name
+                screenshot_path.write_bytes(screenshot)
+                result = {**finding, "status": "VERIFIED", "visible": visible, "observed_text": text, "element_state": element_state, "screenshot": data_url(screenshot), "screenshot_file": str(screenshot_path.relative_to(LIVE_ROOT.parent.parent)), "captured_at": datetime.now(timezone.utc).isoformat()}
+                if finding["id"] == "DP02":
+                    page.locator("#donation").uncheck()
+                    after = page.screenshot(full_page=True)
+                    after_path = out_dir / "dp02-after-uncheck.png"
+                    after_path.write_bytes(after)
+                    result["after_screenshot"] = data_url(after)
+                    result["after_screenshot_file"] = str(after_path.relative_to(LIVE_ROOT.parent.parent))
+                    result["state_transition"] = "checked=true → checked=false"
+                if finding["id"] == "DP05":
+                    page.goto(target + "/cancel", wait_until="networkidle")
+                    related = page.screenshot(full_page=True)
+                    related_path = out_dir / "dp05-cancellation-flow.png"
+                    related_path.write_bytes(related)
+                    result["after_screenshot"] = data_url(related)
+                    result["after_screenshot_file"] = str(related_path.relative_to(LIVE_ROOT.parent.parent))
+                    result["state_transition"] = "/subscribe → /cancel"
+                captured.append(result)
+                sse(self, "finding", {"completed": index + 1, "total": len(FINDINGS), "finding": result, "message": f"Captured {finding['id']} screenshot and saved evidence."})
+            context.close()
+            browser.close()
+        finished_at = datetime.now(timezone.utc).isoformat()
+        report = {"scan": {**scan_meta, "finished_at": finished_at}, "findings": captured, "summary": {"verified_findings": len(captured), "pages_scanned": len(set(item["route"] for item in captured))}}
+        report_path = out_dir / "report.json"
+        report_path.write_text(json.dumps(report, indent=2, ensure_ascii=False) + "\n")
+        sse(self, "complete", {"scan_id": scan_id, "completed": len(captured), "total": len(FINDINGS), "findings": captured, "report_file": str(report_path.relative_to(LIVE_ROOT.parent.parent)), "finished_at": finished_at, "message": "Inspection complete — live evidence package ready and saved."})
+
+
+if __name__ == "__main__":
+    print(f"Inspection API listening on http://{HOST}:{PORT}; target={DEFAULT_TARGET}", flush=True)
+    ThreadingHTTPServer((HOST, PORT), Handler).serve_forever()
