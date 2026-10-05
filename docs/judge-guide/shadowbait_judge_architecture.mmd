@@ -1,0 +1,31 @@
+flowchart LR
+    U[Judge / User] --> UI[DarkShop React demo site\nStart Inspection]
+    UI --> API[Live inspection stream\n/api/inspection/stream]
+    API --> B[Playwright + Chromium\ncontrolled browser]
+    B --> D[DOM + visible text\nselectors + bounding boxes]
+    B --> S[Interactive state\nchecked / visible / enabled]
+    B --> P[Full-page screenshots\nproduct / checkout / subscription]
+    D --> R[Evidence rules\noptional + preselected\nscarcity/timer\nprice-flow signals]
+    S --> R
+    R --> E[Evidence package\nscan.json + response.json\nDOM files + PNGs]
+    E --> DET[Detection layer\ncurrent prototype: deterministic rules\nfuture: annotated NLP model]
+    DET --> F[Candidate finding\npattern + confidence + evidence]
+    F --> BE[Backend integration\nAPI + risk + compliance + storage]
+    BE --> OUT[Results dashboard\npattern cards + screenshot\nselector + ethical fix]
+    OUT --> U
+
+    CPPA[External ground truth\nCPPA/CPRA principles\nclear, balanced choices] -. guides rules .-> R
+    CLEAN[Clean page control\nexpected zero findings] -. validates false positives .-> DET
+
+    classDef ui fill:#eef2ff,stroke:#4f46e5,color:#111827
+    classDef scan fill:#ecfdf5,stroke:#059669,color:#111827
+    classDef evidence fill:#fffbeb,stroke:#d97706,color:#111827
+    classDef detect fill:#fff7ed,stroke:#ea580c,color:#111827
+    classDef backend fill:#f5f3ff,stroke:#7c3aed,color:#111827
+    classDef control fill:#f1f5f9,stroke:#64748b,color:#111827
+    class UI,API ui
+    class B,D,S,P scan
+    class R,E evidence
+    class DET,F detect
+    class BE,OUT backend
+    class CPPA,CLEAN control
