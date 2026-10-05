@@ -3,6 +3,11 @@
     { "path": "/", "title": "DarkShop Home" },
     { "path": "/product", "title": "Premium Wireless Headphones" },
     { "path": "/cart", "title": "Shopping Cart" },
-    { "path": "/checkout", "title": "Checkout" }
+    { "path": "/checkout", "title": "Checkout" },
+    { "path": "/ccpa-lab", "title": "CCPA Dark Pattern Lab" },
+    { "path": "/diff", "title": "Interactive CCPA Diff" },
+    { "path": "/subscribe", "title": "Subscription Trap Fixture" },
+    { "path": "/cancel", "title": "Cancellation Flow Fixture" },
+    { "path": "/bait-switch", "title": "Bait and Switch Fixture" }
   ]
 }
