@@ -112,10 +112,19 @@ function App() {
 }
 
 function VerifiedBanner() {
+  const verifiedFlows = [
+    ['01', 'False Urgency', '/product'],
+    ['02', 'Basket Sneaking', '/checkout'],
+    ['03', 'Confirm Shaming', '/checkout'],
+    ['05', 'Subscription Trap', '/subscribe'],
+    ['06', 'Interface Interference', '/interface-interference'],
+    ['07', 'Bait and Switch', '/bait-switch'],
+    ['08', 'Drip Pricing', '/checkout'],
+  ];
   return (
     <section className="verified-banner" aria-label="Verified CCPA findings">
-      <div><span className="banner-kicker">CURRENT DEMO COVERAGE</span><h2>7 verified CCPA patterns</h2><p>These are intentionally visible so Member 1’s scanner can collect exact evidence.</p></div>
-      <div className="verified-pills"><span>01 False Urgency</span><span>02 Basket Sneaking</span><span>03 Confirm Shaming</span><span>05 Subscription Trap</span><span>06 Interface Interference</span><span>07 Bait and Switch</span><span>08 Drip Pricing</span></div>
+      <div><span className="banner-kicker">SHOP · VERIFIED EVIDENCE FLOWS</span><h2>7 verified CCPA patterns</h2><p>Click any pattern to open the page where its violated interface is visible.</p></div>
+      <div className="verified-pills">{verifiedFlows.map(([id, name, route]) => <button key={id + name} className="verified-flow-pill" onClick={() => navigate(route)}><span>CCPA {id}</span><strong>{name}</strong><em>Open →</em></button>)}</div>
     </section>
   );
 }
