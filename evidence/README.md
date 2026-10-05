@@ -53,3 +53,36 @@ evidence/live-scans/live-<UTC-timestamp>/
 ## Important
 
 Do not run the scanner with the old hard-coded `/home/ubuntu/projects/ShadowBaitRemote/...` path. The fixed script resolves its default output relative to the repository containing `scripts/member1_inspection.py`.
+
+## Automated verification
+
+The repository includes `scripts/verify_scan_outputs.py`.
+
+To run a fresh scan and verify it automatically:
+
+```bash
+python scripts/verify_scan_outputs.py --run-scan --url http://127.0.0.1:3000
+```
+
+On Windows, run this after activating `.venv` and installing Chromium with `python -m playwright install chromium`.
+
+To verify the newest existing scan without starting another scan:
+
+```bash
+python scripts/verify_scan_outputs.py
+```
+
+To verify one specific scan:
+
+```bash
+python scripts/verify_scan_outputs.py --scan-dir evidence/scans/SCAN-20261005T120000Z
+```
+
+The verifier exits with code `1` if `scan.json`, `response.json`, screenshots, DOM files, or referenced artifacts are missing/invalid, or if the scan summary does not match the generated data.
+
+A successful run prints `PASS: scan output is complete`. In PowerShell, you can fail a command sequence when verification fails:
+
+```powershell
+python scripts\verify_scan_outputs.py --run-scan --url http://127.0.0.1:3000
+if ($LASTEXITCODE -ne 0) { throw "ShadowBait evidence verification failed" }
+```
