@@ -20,7 +20,6 @@ Open:
 - http://localhost:3000/checkout — checkout with Basket Sneaking and Confirm Shaming
 - http://localhost:3000/ccpa-lab — coverage catalogue
 - http://localhost:3000/diff — interactive rule/evidence/customer-harm/ethical-fix comparison
-- http://localhost:3000/diff — interactive rule/evidence/customer-harm/ethical-fix comparison
 - http://localhost:3000/subscribe — Subscription Trap fixture
 - http://localhost:3000/cancel — cancellation-flow fixture
 - http://localhost:3000/bait-switch — Bait and Switch fixture
@@ -78,12 +77,8 @@ CCPA rule → observed evidence → customer harm
 Use **Ethical fix view** to switch the same chain to the remediated interface and customer benefit. Verified, candidate, simulated, and excluded statuses are shown separately.
 
 
-## Interactive diff page
+## Dark mode and product image
 
-`/diff` is the primary presentation page for the project demo. Select any of the 13 CCPA categories to animate a three-step chain:
+The header includes a **Dark / Light** toggle. The selected theme is stored in `localStorage` under `shadowbait-theme`, so it persists after reloads and across the product, checkout, CCPA Lab, and interactive diff pages.
 
-```text
-CCPA rule → observed evidence → customer harm
-```
-
-Use **Ethical fix view** to switch the same chain to the remediated interface and customer benefit. Verified, candidate, simulated, and excluded statuses are shown separately.
+The product page uses the bundled real headphone photograph at `public/assets/headphones-product.jpg`. It is loaded locally through `/assets/headphones-product.jpg`, so the demo does not depend on an external image host during testing.

@@ -58,6 +58,7 @@ function navigate(path) {
 
 function App() {
   const [path, setPath] = useState(window.location.pathname || '/');
+  const [darkMode, setDarkMode] = useState(() => window.localStorage.getItem('shadowbait-theme') === 'dark');
   const [donationChecked, setDonationChecked] = useState(true);
   const [secondsLeft, setSecondsLeft] = useState(8 * 60 + 32);
 
@@ -66,6 +67,11 @@ function App() {
     window.addEventListener('popstate', onPopState);
     return () => window.removeEventListener('popstate', onPopState);
   }, []);
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = darkMode ? 'dark' : 'light';
+    window.localStorage.setItem('shadowbait-theme', darkMode ? 'dark' : 'light');
+  }, [darkMode]);
 
   useEffect(() => {
     const timer = window.setInterval(() => setSecondsLeft((value) => (value > 0 ? value - 1 : 8 * 60 + 32)), 1000);
@@ -94,7 +100,7 @@ function App() {
         <button className="brand" onClick={() => navigate('/')} aria-label="Go to DarkShop home"><span className="brand-mark">DS</span><span>DarkShop</span></button>
         <nav className="main-nav" aria-label="Primary navigation">
           <button onClick={() => navigate('/product')}>Shop</button>
-          <button className="lab-link" onClick={() => navigate('/ccpa-lab')}>CCPA Lab <span className="lab-count">12</span></button><button className="diff-link" onClick={() => navigate('/diff')}>Interactive Diff</button>
+          <button className="lab-link" onClick={() => navigate('/ccpa-lab')}>CCPA Lab <span className="lab-count">12</span></button><button className="diff-link" onClick={() => navigate('/diff')}>Interactive Diff</button><button className="theme-toggle" onClick={() => setDarkMode((value) => !value)} aria-label={darkMode ? 'Switch to light mode' : 'Switch to dark mode'} title={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}><span aria-hidden="true">{darkMode ? '☀' : '☾'}</span><small>{darkMode ? 'Light' : 'Dark'}</small></button>
           <button onClick={() => navigate('/cart')}>Cart <span className="cart-count">1</span></button>
         </nav>
       </header>
@@ -119,7 +125,7 @@ function ProductPage({ minutes, seconds }) {
       <VerifiedBanner />
       <div className="breadcrumb">Home <span>/</span> Audio <span>/</span> Headphones</div>
       <section className="product-layout" id="product-page" data-page="product">
-        <div className="product-visual"><div className="product-glow" /><div className="headphone-art" aria-label="Wireless headphones product illustration"><div className="headband" /><div className="earcup left" /><div className="earcup right" /></div><div className="visual-caption">STUDIO SERIES / 2025</div></div>
+        <div className="product-visual"><div className="product-glow" /><div className="real-headphone-photo"><img src="/assets/headphones-product.jpg" alt="Black over-ear wireless headphones" /></div><div className="visual-caption">STUDIO SERIES / 2025 · PRODUCT PHOTO</div></div>
         <div className="product-copy">
           <div className="eyebrow">LIMITED DROP · #DS-440</div><h1>Premium Wireless Headphones</h1><p className="rating">★★★★★ <span>4.9 · 2,481 reviews</span></p>
           <div className="price-row"><span id="current-price" className="current-price">{formatINR(PRODUCT.price)}</span><span id="original-price" className="original-price">{formatINR(PRODUCT.originalPrice)}</span><span id="discount-label" className="discount-label">84% OFF</span></div>
