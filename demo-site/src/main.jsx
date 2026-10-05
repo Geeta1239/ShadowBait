@@ -46,6 +46,16 @@ const CCPA_DIFFS = [
 ];
 
 
+const INSPECTION_FINDINGS = [
+  { id: 'DP01', name: 'False Urgency', route: '/product', selector: '#scarcity-text + #offer-timer', image: '/assets/inspection/dp01-false-urgency-product.png', evidence: '“ONLY 2 LEFT!” appears beside a countdown timer.', why: 'Captured to prove scarcity text and a time-pressure signal are visible together.', harm: 'Pressures customers to buy before comparing options or verifying the claim.' },
+  { id: 'DP02', name: 'Basket Sneaking', route: '/checkout', selector: '#donation', image: '/assets/inspection/dp02-dp03-dp08-checkout-before.png', evidence: 'Optional ₹50 donation checkbox starts checked.', why: 'Captured before interaction to preserve the original checked state.', harm: 'Adds an optional charge without an explicit affirmative choice.' },
+  { id: 'DP03', name: 'Confirm Shaming', route: '/checkout', selector: '#confirm-shaming', image: '/assets/inspection/dp02-dp03-dp08-checkout-before.png', evidence: '“No, I don’t want to save money.”', why: 'Captured because the decline wording itself is the evidence.', harm: 'Uses guilt to steer customers toward an optional transaction.' },
+  { id: 'DP05', name: 'Subscription Trap', route: '/subscribe', selector: '[data-ccpa-pattern="SUBSCRIPTION_TRAP"]', image: '/assets/inspection/dp05-subscription-trap-start.png', evidence: 'Automatic renewal is selected and cancellation is routed elsewhere.', why: 'Captured to compare the easy signup path with the separate cancellation flow.', harm: 'Makes recurring billing easier to start than to stop.' },
+  { id: 'DP06', name: 'Interface Interference', route: '/interface-interference', selector: '[data-ccpa-pattern="INTERFACE_INTERFERENCE"]', image: '/assets/inspection/dp06-interface-interference.png', evidence: 'Recommended plan is prominent while Basic is visually muted.', why: 'Captured to compare the visual hierarchy of the two consequential choices.', harm: 'Obscures the customer’s lower-commitment choice.' },
+  { id: 'DP07', name: 'Bait and Switch', route: '/bait-switch', selector: '#bait-switch-status', image: '/assets/inspection/dp07-bait-and-switch.png', evidence: '₹799 selection becomes an unavailable ₹1,999 upgrade at the final step.', why: 'Captured to preserve both the selected offer and the changed final outcome.', harm: 'Wastes time and redirects purchase intent toward a more expensive item.' },
+  { id: 'DP08', name: 'Drip Pricing', route: '/checkout', selector: '[data-ccpa-pattern="DRIP_PRICING"]', image: '/assets/inspection/dp02-dp03-dp08-checkout-before.png', evidence: 'Delivery, platform, and handling fees appear in the later checkout summary.', why: 'Captured to show the product price beside the later fee breakdown and total.', harm: 'Delays accurate price comparison until late in the journey.' },
+];
+
 function formatINR(value) {
   return `₹${value.toLocaleString('en-IN')}`;
 }
@@ -85,6 +95,7 @@ function App() {
   const page = useMemo(() => {
     if (path === '/ccpa-lab') return <PatternLabPage />;
     if (path === '/diff') return <DiffPage />;
+    if (path === '/inspect') return <InspectionPage />;
     if (path === '/subscribe') return <SubscribePage />;
     if (path === '/cancel') return <CancelPage />;
     if (path === '/bait-switch') return <BaitSwitchPage />;
@@ -101,7 +112,7 @@ function App() {
         <button className="brand" onClick={() => navigate('/')} aria-label="Go to DarkShop home"><span className="brand-mark">DS</span><span>DarkShop</span></button>
         <nav className="main-nav" aria-label="Primary navigation">
           <button onClick={() => navigate('/product')}>Shop</button>
-          <button className="lab-link" onClick={() => navigate('/ccpa-lab')}>CCPA Lab <span className="lab-count">12</span></button><button className="diff-link" onClick={() => navigate('/diff')}>Interactive Diff</button><button className="theme-toggle" onClick={() => setDarkMode((value) => !value)} aria-label={darkMode ? 'Switch to light mode' : 'Switch to dark mode'} title={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}><span aria-hidden="true">{darkMode ? '☀' : '☾'}</span><small>{darkMode ? 'Light' : 'Dark'}</small></button>
+          <button className="lab-link" onClick={() => navigate('/ccpa-lab')}>CCPA Lab <span className="lab-count">12</span></button><button className="diff-link" onClick={() => navigate('/diff')}>Interactive Diff</button><button className="inspect-link" onClick={() => navigate('/inspect')}>Start Inspection</button><button className="theme-toggle" onClick={() => setDarkMode((value) => !value)} aria-label={darkMode ? 'Switch to light mode' : 'Switch to dark mode'} title={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}><span aria-hidden="true">{darkMode ? '☀' : '☾'}</span><small>{darkMode ? 'Light' : 'Dark'}</small></button>
           <button onClick={() => navigate('/cart')}>Cart <span className="cart-count">1</span></button>
         </nav>
       </header>
@@ -109,6 +120,29 @@ function App() {
       <footer className="site-footer"><span>DarkShop controlled research environment</span><span>Not legal advice · No real payment or malware</span></footer>
     </div>
   );
+}
+
+
+function InspectionPage() {
+  const [running, setRunning] = useState(false);
+  const [completed, setCompleted] = useState(0);
+  useEffect(() => {
+    if (!running) return undefined;
+    if (completed >= INSPECTION_FINDINGS.length) {
+      setRunning(false);
+      return undefined;
+    }
+    const timer = window.setTimeout(() => setCompleted((value) => value + 1), 900);
+    return () => window.clearTimeout(timer);
+  }, [running, completed]);
+  const startInspection = () => { setCompleted(0); setRunning(true); };
+  const downloadReport = () => {
+    const payload = { generated_at: new Date().toISOString(), mode: 'visible demo inspection', verified_findings: INSPECTION_FINDINGS.map(({ id, name, route, selector, evidence, why, harm }) => ({ id, name, route, selector, evidence, why, harm })) };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob); const link = document.createElement('a'); link.href = url; link.download = 'member1-visible-inspection-report.json'; link.click(); URL.revokeObjectURL(url);
+  };
+  const visible = INSPECTION_FINDINGS.slice(0, completed);
+  return <div className="page-wrap inspection-page"><div className="breadcrumb">Home <span>/</span> Member 1 <span>/</span> Inspection Demo</div><div className="inspection-hero"><div><div className="eyebrow">MEMBER 1 · STEP 2</div><h1>Visible website inspection</h1><p>Start the scan and watch the browser evidence process: open route → inspect selector → capture screenshot → explain the CCPA finding.</p></div><div className="inspection-actions"><button className="primary-cta" onClick={startInspection} disabled={running}>{running ? 'INSPECTION RUNNING…' : completed === INSPECTION_FINDINGS.length ? 'RUN INSPECTION AGAIN' : 'START INSPECTION'} <span>→</span></button>{completed > 0 && <button className="secondary-cta" onClick={downloadReport}>DOWNLOAD REPORT</button>}</div></div><div className="inspection-status"><div className="status-copy"><span className={running ? 'live-dot running' : 'live-dot'} />{running ? `Inspecting evidence ${completed + 1} of ${INSPECTION_FINDINGS.length}…` : completed === INSPECTION_FINDINGS.length ? 'Inspection complete — evidence package ready.' : 'Ready — no scan has started yet.'}</div><div className="progress-track"><span style={{ width: `${(completed / INSPECTION_FINDINGS.length) * 100}%` }} /></div><strong>{completed}/{INSPECTION_FINDINGS.length}</strong></div><div className="inspection-layout"><section className="inspection-log"><div className="section-heading"><div><span className="eyebrow">LIVE EVENT LOG</span><h2>What the inspector is doing</h2></div><span className="scan-badge">{running ? 'LIVE' : completed ? 'SAVED' : 'IDLE'}</span></div>{completed === 0 && !running && <div className="empty-inspection"><strong>Click Start Inspection</strong><p>The demo will reveal each captured finding one at a time so the process can be explained to a judge or teammate.</p></div>}{INSPECTION_FINDINGS.map((finding, index) => <div key={finding.id} className={`inspection-log-row ${index < completed ? 'done' : index === completed && running ? 'active' : ''}`}><span className="log-number">{index < completed ? '✓' : String(index + 1).padStart(2, '0')}</span><div><strong>{index < completed ? `Captured ${finding.id} · ${finding.name}` : index === completed && running ? `Inspecting ${finding.route}` : `Queued · ${finding.id} ${finding.name}`}</strong><small>{index < completed ? `${finding.selector} · screenshot saved` : index === completed && running ? `Reading DOM and checking ${finding.selector}` : 'Waiting for the previous inspection step'}</small></div></div>)}</section><section className="inspection-results"><div className="section-heading"><div><span className="eyebrow">CAPTURED EVIDENCE</span><h2>Why each screenshot was captured</h2></div><span className="result-count">{visible.length} findings</span></div>{visible.length === 0 && <div className="empty-inspection result-empty"><strong>Your evidence cards will appear here</strong><p>Every card explains the route, selector, visible evidence, customer harm, and why the screenshot matters.</p></div>}{visible.map((finding) => <article className="inspection-evidence-card" key={finding.id}><div className="evidence-card-head"><div><span className="mini-verified">{finding.id} · VERIFIED</span><h3>{finding.name}</h3></div><span className="route-chip">{finding.route}</span></div><img src={finding.image} alt={`${finding.name} captured evidence`} /><div className="evidence-card-body"><p><strong>Observed:</strong> {finding.evidence}</p><p><strong>Why captured:</strong> {finding.why}</p><p><strong>Selector:</strong> <code>{finding.selector}</code></p><p><strong>Customer harm:</strong> {finding.harm}</p></div></article>)}</section></div><div className="inspection-note"><strong>Demo note:</strong> This visible flow replays the verified Member 1 evidence package captured from the local site. In production, the same cards will be populated by the Playwright scanner output.</div></div>;
 }
 
 function VerifiedBanner() {

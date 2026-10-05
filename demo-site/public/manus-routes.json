@@ -6,6 +6,7 @@
     { "path": "/checkout", "title": "Checkout" },
     { "path": "/ccpa-lab", "title": "CCPA Dark Pattern Lab" },
     { "path": "/diff", "title": "Interactive CCPA Diff" },
+    { "path": "/inspect", "title": "Member 1 Inspection Demo" },
     { "path": "/subscribe", "title": "Subscription Trap Fixture" },
     { "path": "/cancel", "title": "Cancellation Flow Fixture" },
     { "path": "/bait-switch", "title": "Bait and Switch Fixture" },

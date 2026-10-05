@@ -20,6 +20,7 @@ Open:
 - http://localhost:3000/checkout — checkout with Basket Sneaking and Confirm Shaming
 - http://localhost:3000/ccpa-lab — coverage catalogue
 - http://localhost:3000/diff — interactive rule/evidence/customer-harm/ethical-fix comparison
+- http://localhost:3000/inspect — visible Member 1 inspection demo with live progress, captured screenshots, and CCPA explanations
 - http://localhost:3000/subscribe — Subscription Trap fixture
 - http://localhost:3000/cancel — cancellation-flow fixture
 - http://localhost:3000/bait-switch — Bait and Switch fixture
