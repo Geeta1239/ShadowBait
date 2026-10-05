@@ -1,0 +1,797 @@
+{
+  "scan": {
+    "started_at": "2026-10-05T11:23:55.364678+00:00",
+    "base_url": "http://127.0.0.1:4173",
+    "browser": "Chromium",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    },
+    "theme": "light",
+    "member": "Member 1",
+    "step": "Step 2 — inspect website and collect evidence",
+    "finished_at": "2026-10-05T11:24:08.064882+00:00"
+  },
+  "pages": [
+    {
+      "route": "/",
+      "url": "http://127.0.0.1:4173/",
+      "title": "DarkShop — Premium Audio",
+      "heading": "Premium Wireless Headphones",
+      "screenshot": "evidence/member1-step2/shop-root.png",
+      "selectors": [
+        {
+          "selector": "#scarcity-text",
+          "present": true,
+          "visible": true,
+          "enabled": true,
+          "text": "ONLY 2 LEFT!",
+          "value": null,
+          "checked": null,
+          "aria_label": null,
+          "data_ccpa_pattern": null,
+          "data_status": null,
+          "bounding_box": {
+            "x": 814.7,
+            "y": 818.02,
+            "width": 77.25,
+            "height": 17.0
+          },
+          "computed": {
+            "color": "rgb(180, 91, 22)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "display": "block"
+          }
+        },
+        {
+          "selector": "#offer-timer",
+          "present": true,
+          "visible": true,
+          "enabled": true,
+          "text": "08:31",
+          "value": null,
+          "checked": null,
+          "aria_label": null,
+          "data_ccpa_pattern": null,
+          "data_status": null,
+          "bounding_box": {
+            "x": 1184.05,
+            "y": 856.02,
+            "width": 56.95,
+            "height": 22.0
+          },
+          "computed": {
+            "color": "rgb(159, 75, 22)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "display": "block"
+          }
+        }
+      ]
+    },
+    {
+      "route": "/product",
+      "url": "http://127.0.0.1:4173/product",
+      "title": "DarkShop — Premium Audio",
+      "heading": "Premium Wireless Headphones",
+      "screenshot": "evidence/member1-step2/dp01-false-urgency-product.png",
+      "selectors": [
+        {
+          "selector": "#scarcity-text",
+          "present": true,
+          "visible": true,
+          "enabled": true,
+          "text": "ONLY 2 LEFT!",
+          "value": null,
+          "checked": null,
+          "aria_label": null,
+          "data_ccpa_pattern": null,
+          "data_status": null,
+          "bounding_box": {
+            "x": 814.7,
+            "y": 818.02,
+            "width": 77.25,
+            "height": 17.0
+          },
+          "computed": {
+            "color": "rgb(180, 91, 22)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "display": "block"
+          }
+        },
+        {
+          "selector": "#offer-timer",
+          "present": true,
+          "visible": true,
+          "enabled": true,
+          "text": "08:32",
+          "value": null,
+          "checked": null,
+          "aria_label": null,
+          "data_ccpa_pattern": null,
+          "data_status": null,
+          "bounding_box": {
+            "x": 1184.05,
+            "y": 856.02,
+            "width": 56.95,
+            "height": 22.0
+          },
+          "computed": {
+            "color": "rgb(159, 75, 22)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "display": "block"
+          }
+        },
+        {
+          "selector": "[data-ccpa-pattern=\"FALSE_URGENCY\"]",
+          "present": true,
+          "visible": true,
+          "enabled": true,
+          "text": "CCPA 01 · VERIFIED — FALSE URGENCY\n◆\nONLY 2 LEFT!\nin stock\nOffer reserved for\n08:32\n\nScanner evidence: scarcity text + countdown. Ethical fix: show truthful inventory and a non-resetting offer deadline.",
+          "value": null,
+          "checked": null,
+          "aria_label": null,
+          "data_ccpa_pattern": "FALSE_URGENCY",
+          "data_status": "VERIFIED",
+          "bounding_box": {
+            "x": 770.0,
+            "y": 744.02,
+            "width": 500.0,
+            "height": 218.0
+          },
+          "computed": {
+            "color": "rgb(24, 34, 48)",
+            "backgroundColor": "rgb(247, 252, 249)",
+            "display": "block"
+          }
+        }
+      ]
+    },
+    {
+      "route": "/checkout",
+      "url": "http://127.0.0.1:4173/checkout",
+      "title": "DarkShop — Premium Audio",
+      "heading": "Checkout",
+      "screenshot": "evidence/member1-step2/dp02-dp03-dp08-checkout-before.png",
+      "selectors": [
+        {
+          "selector": "#donation",
+          "present": true,
+          "visible": true,
+          "enabled": true,
+          "text": "",
+          "value": "on",
+          "checked": true,
+          "aria_label": null,
+          "data_ccpa_pattern": null,
+          "data_status": null,
+          "bounding_box": {
+            "x": 220.0,
+            "y": 755.92,
+            "width": 13.0,
+            "height": 13.0
+          },
+          "computed": {
+            "color": "rgb(0, 0, 0)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "display": "block"
+          }
+        },
+        {
+          "selector": "#confirm-shaming",
+          "present": true,
+          "visible": true,
+          "enabled": true,
+          "text": "No, I don't want to save money.",
+          "value": null,
+          "checked": null,
+          "aria_label": null,
+          "data_ccpa_pattern": null,
+          "data_status": null,
+          "bounding_box": {
+            "x": 638.27,
+            "y": 874.42,
+            "width": 177.73,
+            "height": 17.0
+          },
+          "computed": {
+            "color": "rgb(239, 154, 131)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "display": "block"
+          }
+        },
+        {
+          "selector": "#total-price",
+          "present": true,
+          "visible": true,
+          "enabled": true,
+          "text": "₹1,017",
+          "value": null,
+          "checked": null,
+          "aria_label": null,
+          "data_ccpa_pattern": null,
+          "data_status": null,
+          "bounding_box": {
+            "x": 1155.34,
+            "y": 619.52,
+            "width": 69.66,
+            "height": 35.0
+          },
+          "computed": {
+            "color": "rgb(24, 34, 48)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "display": "block"
+          }
+        },
+        {
+          "selector": "[data-ccpa-pattern*=\"DRIP_PRICING\"]",
+          "present": true,
+          "visible": true,
+          "enabled": true,
+          "text": "2\nOrder options 2 verified patterns\n\nPersonalize your delivery\n\nCCPA 02 · VERIFIED — BASKET SNEAKING\nAdd ₹50 donation\nSupport responsible packaging for this order.\n₹50\n\nScanner evidence: optional add-on is selected before affirmative consent.\n\nCCPA 03 · VERIFIED — CONFIRM SHAMING\nNot interested?\nNo, I don't want to save money.\n\nScanner evidence: decline wording uses guilt to influence the choice.",
+          "value": null,
+          "checked": null,
+          "aria_label": null,
+          "data_ccpa_pattern": "BASKET_SNEAKING + CONFIRM_SHAMING + DRIP_PRICING",
+          "data_status": "VERIFIED",
+          "bounding_box": {
+            "x": 190.0,
+            "y": 630.52,
+            "width": 650.0,
+            "height": 309.41
+          },
+          "computed": {
+            "color": "rgb(24, 34, 48)",
+            "backgroundColor": "rgb(247, 252, 249)",
+            "display": "block"
+          }
+        }
+      ]
+    },
+    {
+      "route": "/subscribe",
+      "url": "http://127.0.0.1:4173/subscribe",
+      "title": "DarkShop — Premium Audio",
+      "heading": "Start your free studio trial",
+      "screenshot": "evidence/member1-step2/dp05-subscription-trap-start.png",
+      "selectors": [
+        {
+          "selector": "[data-ccpa-pattern=\"SUBSCRIPTION_TRAP\"]",
+          "present": true,
+          "visible": true,
+          "enabled": true,
+          "text": "₹0\ntoday · then ₹499/month\nStart automatic renewal after the trial\nSTART FREE TRIAL\n→\nNeed to cancel? Find cancellation options",
+          "value": null,
+          "checked": null,
+          "aria_label": null,
+          "data_ccpa_pattern": "SUBSCRIPTION_TRAP",
+          "data_status": "VERIFIED",
+          "bounding_box": {
+            "x": 295.0,
+            "y": 316.62,
+            "width": 850.0,
+            "height": 280.0
+          },
+          "computed": {
+            "color": "rgb(24, 34, 48)",
+            "backgroundColor": "rgb(255, 255, 255)",
+            "display": "block"
+          }
+        },
+        {
+          "selector": "input[type=\"checkbox\"]",
+          "present": true,
+          "visible": true,
+          "enabled": true,
+          "text": "",
+          "value": "on",
+          "checked": true,
+          "aria_label": null,
+          "data_ccpa_pattern": null,
+          "data_status": null,
+          "bounding_box": {
+            "x": 338.0,
+            "y": 438.62,
+            "width": 13.0,
+            "height": 13.0
+          },
+          "computed": {
+            "color": "rgb(0, 0, 0)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "display": "block"
+          }
+        },
+        {
+          "selector": "button:has-text(\"START FREE TRIAL\")",
+          "present": true,
+          "visible": true,
+          "enabled": true,
+          "text": "START FREE TRIAL\n→",
+          "value": null,
+          "checked": null,
+          "aria_label": null,
+          "data_ccpa_pattern": null,
+          "data_status": null,
+          "bounding_box": {
+            "x": 321.0,
+            "y": 487.62,
+            "width": 798.0,
+            "height": 49.0
+          },
+          "computed": {
+            "color": "rgb(255, 255, 255)",
+            "backgroundColor": "rgb(24, 34, 48)",
+            "display": "flex"
+          }
+        }
+      ]
+    },
+    {
+      "route": "/cancel",
+      "url": "http://127.0.0.1:4173/cancel",
+      "title": "DarkShop — Premium Audio",
+      "heading": "Manage your subscription",
+      "screenshot": "evidence/member1-step2/dp05-subscription-trap-cancel.png",
+      "selectors": [
+        {
+          "selector": ".cancel-card",
+          "present": true,
+          "visible": true,
+          "enabled": true,
+          "text": "1\nTell us why you are leaving\n2\nReview three retention offers\n3\nConfirm cancellation by email\nContinue cancellation",
+          "value": null,
+          "checked": null,
+          "aria_label": null,
+          "data_ccpa_pattern": null,
+          "data_status": null,
+          "bounding_box": {
+            "x": 295.0,
+            "y": 316.62,
+            "width": 850.0,
+            "height": 283.0
+          },
+          "computed": {
+            "color": "rgb(24, 34, 48)",
+            "backgroundColor": "rgb(255, 255, 255)",
+            "display": "grid"
+          }
+        },
+        {
+          "selector": ".cancel-step",
+          "present": true,
+          "visible": true,
+          "enabled": true,
+          "text": "1\nTell us why you are leaving",
+          "value": null,
+          "checked": null,
+          "aria_label": null,
+          "data_ccpa_pattern": null,
+          "data_status": null,
+          "bounding_box": {
+            "x": 321.0,
+            "y": 342.62,
+            "width": 798.0,
+            "height": 50.0
+          },
+          "computed": {
+            "color": "rgb(153, 107, 34)",
+            "backgroundColor": "rgb(51, 44, 32)",
+            "display": "flex"
+          }
+        }
+      ]
+    },
+    {
+      "route": "/interface-interference",
+      "url": "http://127.0.0.1:4173/interface-interference",
+      "title": "DarkShop — Premium Audio",
+      "heading": "Choose your listening plan",
+      "screenshot": "evidence/member1-step2/dp06-interface-interference.png",
+      "selectors": [
+        {
+          "selector": "[data-ccpa-pattern=\"INTERFACE_INTERFERENCE\"]",
+          "present": true,
+          "visible": true,
+          "enabled": true,
+          "text": "CCPA 06 · VERIFIED — INTERFACE INTERFERENCE\nRECOMMENDED\nStudio Pro · ₹999/month\nUnlimited tools, priority support, and premium exports.\nCHOOSE STUDIO PRO\n→\nBasic · ₹0/month\nLimited tools and standard exports.\nContinue with Basic\n\nScanner evidence: the preferred action receives strong contrast and placement; the alternative is visually muted.",
+          "value": null,
+          "checked": null,
+          "aria_label": null,
+          "data_ccpa_pattern": "INTERFACE_INTERFERENCE",
+          "data_status": "VERIFIED",
+          "bounding_box": {
+            "x": 295.0,
+            "y": 316.62,
+            "width": 850.0,
+            "height": 408.38
+          },
+          "computed": {
+            "color": "rgb(24, 34, 48)",
+            "backgroundColor": "rgb(255, 255, 255)",
+            "display": "grid"
+          }
+        },
+        {
+          "selector": ".preferred",
+          "present": true,
+          "visible": true,
+          "enabled": true,
+          "text": "RECOMMENDED\nStudio Pro · ₹999/month\nUnlimited tools, priority support, and premium exports.\nCHOOSE STUDIO PRO\n→",
+          "value": null,
+          "checked": null,
+          "aria_label": null,
+          "data_ccpa_pattern": null,
+          "data_status": null,
+          "bounding_box": {
+            "x": 321.0,
+            "y": 369.62,
+            "width": 798.0,
+            "height": 170.94
+          },
+          "computed": {
+            "color": "rgb(24, 34, 48)",
+            "backgroundColor": "rgb(27, 54, 40)",
+            "display": "flex"
+          }
+        },
+        {
+          "selector": ".muted-choice",
+          "present": true,
+          "visible": true,
+          "enabled": true,
+          "text": "Basic · ₹0/month\nLimited tools and standard exports.\nContinue with Basic",
+          "value": null,
+          "checked": null,
+          "aria_label": null,
+          "data_ccpa_pattern": null,
+          "data_status": null,
+          "bounding_box": {
+            "x": 321.0,
+            "y": 552.56,
+            "width": 798.0,
+            "height": 107.94
+          },
+          "computed": {
+            "color": "rgb(24, 34, 48)",
+            "backgroundColor": "rgb(32, 43, 55)",
+            "display": "flex"
+          }
+        }
+      ]
+    },
+    {
+      "route": "/bait-switch",
+      "url": "http://127.0.0.1:4173/bait-switch",
+      "title": "DarkShop — Premium Audio",
+      "heading": "Offer status changed",
+      "screenshot": "evidence/member1-step2/dp07-bait-and-switch.png",
+      "selectors": [
+        {
+          "selector": "[data-ccpa-pattern=\"BAIT_AND_SWITCH\"]",
+          "present": true,
+          "visible": true,
+          "enabled": true,
+          "text": "Selected at product page\nPremium Wireless Headphones · ₹799\n↓\nAt final step\nSelected item is unavailable. Upgrade to Pro Max · ₹1,999\nBack to pattern lab",
+          "value": null,
+          "checked": null,
+          "aria_label": null,
+          "data_ccpa_pattern": "BAIT_AND_SWITCH",
+          "data_status": "VERIFIED",
+          "bounding_box": {
+            "x": 295.0,
+            "y": 316.62,
+            "width": 720.0,
+            "height": 318.0
+          },
+          "computed": {
+            "color": "rgb(24, 34, 48)",
+            "backgroundColor": "rgb(255, 255, 255)",
+            "display": "block"
+          }
+        },
+        {
+          "selector": "#bait-switch-status",
+          "present": true,
+          "visible": true,
+          "enabled": true,
+          "text": "Selected item is unavailable. Upgrade to Pro Max · ₹1,999",
+          "value": null,
+          "checked": null,
+          "aria_label": null,
+          "data_ccpa_pattern": null,
+          "data_status": null,
+          "bounding_box": {
+            "x": 338.0,
+            "y": 508.62,
+            "width": 634.0,
+            "height": 21.0
+          },
+          "computed": {
+            "color": "rgb(161, 63, 43)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "display": "block"
+          }
+        }
+      ]
+    },
+    {
+      "route": "/ccpa-lab",
+      "url": "http://127.0.0.1:4173/ccpa-lab",
+      "title": "DarkShop — Premium Audio",
+      "heading": "Dark-pattern pattern lab",
+      "screenshot": "evidence/member1-step2/ccpa-lab-seven-verified.png",
+      "selectors": [
+        {
+          "selector": ".pattern-card",
+          "present": true,
+          "visible": true,
+          "enabled": true,
+          "text": "CCPA 01\nVERIFIED\nFalse Urgency\n\nScarcity and a countdown push immediate action.\n\nScanner fixture included",
+          "value": null,
+          "checked": null,
+          "aria_label": null,
+          "data_ccpa_pattern": "FALSE URGENCY",
+          "data_status": "VERIFIED",
+          "bounding_box": {
+            "x": 130.0,
+            "y": 486.94,
+            "width": 384.66,
+            "height": 172.0
+          },
+          "computed": {
+            "color": "rgb(24, 34, 48)",
+            "backgroundColor": "rgb(242, 251, 245)",
+            "display": "block"
+          }
+        },
+        {
+          "selector": ".status-verified",
+          "present": true,
+          "visible": true,
+          "enabled": true,
+          "text": "CCPA 01\nVERIFIED\nFalse Urgency\n\nScarcity and a countdown push immediate action.\n\nScanner fixture included",
+          "value": null,
+          "checked": null,
+          "aria_label": null,
+          "data_ccpa_pattern": "FALSE URGENCY",
+          "data_status": "VERIFIED",
+          "bounding_box": {
+            "x": 130.0,
+            "y": 486.94,
+            "width": 384.66,
+            "height": 172.0
+          },
+          "computed": {
+            "color": "rgb(24, 34, 48)",
+            "backgroundColor": "rgb(242, 251, 245)",
+            "display": "block"
+          }
+        }
+      ]
+    },
+    {
+      "route": "/diff",
+      "url": "http://127.0.0.1:4173/diff",
+      "title": "DarkShop — Premium Audio",
+      "heading": "Violation → customer harm → ethical fix",
+      "screenshot": "evidence/member1-step2/interactive-diff-seven-verified.png",
+      "selectors": [
+        {
+          "selector": ".diff-index-row",
+          "present": true,
+          "visible": true,
+          "enabled": true,
+          "text": "01\nFalse Urgency\nVERIFIED",
+          "value": null,
+          "checked": null,
+          "aria_label": null,
+          "data_ccpa_pattern": null,
+          "data_status": null,
+          "bounding_box": {
+            "x": 149.0,
+            "y": 720.12,
+            "width": 292.0,
+            "height": 39.0
+          },
+          "computed": {
+            "color": "rgb(255, 255, 255)",
+            "backgroundColor": "rgb(44, 36, 80)",
+            "display": "grid"
+          }
+        },
+        {
+          "selector": ".diff-index-row em.verified",
+          "present": true,
+          "visible": true,
+          "enabled": true,
+          "text": "VERIFIED",
+          "value": null,
+          "checked": null,
+          "aria_label": null,
+          "data_ccpa_pattern": null,
+          "data_status": null,
+          "bounding_box": {
+            "x": 384.59,
+            "y": 730.12,
+            "width": 48.41,
+            "height": 18.0
+          },
+          "computed": {
+            "color": "rgb(39, 120, 75)",
+            "backgroundColor": "rgb(224, 244, 230)",
+            "display": "block"
+          }
+        },
+        {
+          "selector": ".diff-score",
+          "present": true,
+          "visible": true,
+          "enabled": true,
+          "text": "7\nverified now\n12/13 represented",
+          "value": null,
+          "checked": null,
+          "aria_label": null,
+          "data_ccpa_pattern": null,
+          "data_status": null,
+          "bounding_box": {
+            "x": 1178.0,
+            "y": 257.12,
+            "width": 132.0,
+            "height": 132.0
+          },
+          "computed": {
+            "color": "rgb(110, 84, 183)",
+            "backgroundColor": "rgb(247, 243, 255)",
+            "display": "flex"
+          }
+        }
+      ]
+    }
+  ],
+  "findings": [
+    {
+      "pattern_id": "DP01",
+      "pattern_name": "False Urgency",
+      "status": "VERIFIED",
+      "page_url": "/product",
+      "selector": "#scarcity-text",
+      "related_selector": "#offer-timer",
+      "evidence_text": "ONLY 2 LEFT!",
+      "timer_before": "08:32",
+      "screenshot": "evidence/member1-step2/dp01-false-urgency-product.png",
+      "customer_harm": "Pressures people to buy before comparing options or verifying the claim.",
+      "ethical_fix": "Show truthful stock and a fixed, clearly stated offer end time.",
+      "timer_after": "08:30",
+      "timer_changed": true
+    },
+    {
+      "pattern_id": "DP02",
+      "pattern_name": "Basket Sneaking",
+      "status": "VERIFIED",
+      "page_url": "/checkout",
+      "selector": "#donation",
+      "evidence_text": "Add ₹50 donation\nSupport responsible packaging for this order.\n₹50",
+      "element_state": {
+        "checked": true,
+        "visible": true
+      },
+      "total_before": "₹1,017",
+      "screenshot": "evidence/member1-step2/dp02-dp03-dp08-checkout-before.png",
+      "customer_harm": "Raises the payable amount without an explicit affirmative choice.",
+      "ethical_fix": "Start optional add-ons unchecked and explain them plainly."
+    },
+    {
+      "pattern_id": "DP03",
+      "pattern_name": "Confirm Shaming",
+      "status": "VERIFIED",
+      "page_url": "/checkout",
+      "selector": "#confirm-shaming",
+      "evidence_text": "No, I don't want to save money.",
+      "element_state": {
+        "visible": true,
+        "enabled": true
+      },
+      "screenshot": "evidence/member1-step2/dp02-dp03-dp08-checkout-before.png",
+      "customer_harm": "Uses guilt to steer a consumer into an optional transaction.",
+      "ethical_fix": "Use neutral choices such as Continue without donation."
+    },
+    {
+      "pattern_id": "DP08",
+      "pattern_name": "Drip Pricing",
+      "status": "VERIFIED",
+      "page_url": "/checkout",
+      "selector": "[data-ccpa-pattern=\"DRIP_PRICING\"]",
+      "evidence_text": "CCPA 08 · VERIFIED — DRIP PRICING",
+      "fees": {
+        "Delivery": "₹99",
+        "Platform fee": "₹49",
+        "Handling fee": "₹20"
+      },
+      "total": "₹1,017",
+      "screenshot": "evidence/member1-step2/dp02-dp03-dp08-checkout-before.png",
+      "customer_harm": "Prevents accurate price comparison until late in the purchase journey.",
+      "ethical_fix": "Show the complete payable estimate beside the product price."
+    },
+    {
+      "pattern_id": "DP05",
+      "pattern_name": "Subscription Trap",
+      "status": "VERIFIED",
+      "page_url": "/subscribe",
+      "selector": "[data-ccpa-pattern=\"SUBSCRIPTION_TRAP\"]",
+      "evidence_text": "CCPA 05 · VERIFIED — Subscription Trap: sign-up is one click; cancellation is routed through a separate, less visible flow.",
+      "renewal_checked": true,
+      "start_button": "START FREE TRIAL\n→",
+      "screenshot": "evidence/member1-step2/dp05-subscription-trap-start.png",
+      "customer_harm": "Makes it harder to stop recurring charges than to start them.",
+      "ethical_fix": "Offer cancellation with the same visibility and simplicity as sign-up."
+    },
+    {
+      "pattern_id": "DP06",
+      "pattern_name": "Interface Interference",
+      "status": "VERIFIED",
+      "page_url": "/interface-interference",
+      "selector": "[data-ccpa-pattern=\"INTERFACE_INTERFERENCE\"]",
+      "evidence_text": "Scanner evidence: the preferred action receives strong contrast and placement; the alternative is visually muted.",
+      "preferred_button": "CHOOSE STUDIO PRO\n→",
+      "alternative_button": "Continue with Basic",
+      "screenshot": "evidence/member1-step2/dp06-interface-interference.png",
+      "customer_harm": "Obscures the consumer’s lower-commitment choice through visual hierarchy.",
+      "ethical_fix": "Give both consequential choices equal prominence and clarity."
+    },
+    {
+      "pattern_id": "DP07",
+      "pattern_name": "Bait and Switch",
+      "status": "VERIFIED",
+      "page_url": "/bait-switch",
+      "selector": "#bait-switch-status",
+      "evidence_text": "Selected item is unavailable. Upgrade to Pro Max · ₹1,999",
+      "selected_offer": "Selected at product page\nPremium Wireless Headphones · ₹799",
+      "screenshot": "evidence/member1-step2/dp07-bait-and-switch.png",
+      "customer_harm": "Wastes time and redirects purchase intent toward a more expensive item.",
+      "ethical_fix": "Keep the advertised outcome available or disclose changes immediately."
+    }
+  ],
+  "checks": [
+    {
+      "name": "Basket Sneaking state changes after explicit uncheck",
+      "passed": true
+    },
+    {
+      "name": "Checkout total changes after removing donation",
+      "passed": true
+    },
+    {
+      "name": "Subscription cancellation has multiple visible steps",
+      "passed": true
+    },
+    {
+      "name": "CCPA Lab contains seven verified cards",
+      "passed": true,
+      "observed": 7
+    },
+    {
+      "name": "Interactive Diff contains seven verified categories",
+      "passed": true,
+      "observed": 7
+    },
+    {
+      "name": "Dark mode preserves visible False Urgency evidence",
+      "passed": true,
+      "screenshot": "evidence/member1-step2/dp01-false-urgency-product-dark.png"
+    }
+  ],
+  "summary": {
+    "verified_findings": 7,
+    "verified_pattern_ids": [
+      "DP01",
+      "DP02",
+      "DP03",
+      "DP08",
+      "DP05",
+      "DP06",
+      "DP07"
+    ],
+    "pages_scanned": 9,
+    "checks_passed": 6,
+    "checks_total": 6
+  }
+}
