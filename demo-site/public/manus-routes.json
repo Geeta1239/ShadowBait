@@ -1,0 +1,8 @@
+{
+  "routes": [
+    { "path": "/", "title": "DarkShop Home" },
+    { "path": "/product", "title": "Premium Wireless Headphones" },
+    { "path": "/cart", "title": "Shopping Cart" },
+    { "path": "/checkout", "title": "Checkout" }
+  ]
+}

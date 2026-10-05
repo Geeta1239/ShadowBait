@@ -1,0 +1,222 @@
+direction: down
+
+user: User / Judge {
+  shape: person
+}
+
+m4_demo: "MEMBER 4 — CONTROLLED DEMO SITE" {
+  style.fill: "#EEF2FF"
+  style.stroke: "#4F46E5"
+  style.stroke-width: 2
+
+  darkshop: "DarkShop demo website" {
+    shape: rectangle
+    style.fill: "#E0E7FF"
+  }
+  product: "Product page\n₹799 / ₹4,999\n84% OFF\nONLY 2 LEFT!\nTimer" {
+    shape: rectangle
+  }
+  checkout: "Checkout page\n☑ Add ₹50 donation\nDelivery + platform + handling fees\nConfirm-shaming text" {
+    shape: rectangle
+  }
+  routes: "/  /product  /cart  /checkout" {
+    shape: oval
+  }
+
+  darkshop -> routes
+  routes -> product
+  routes -> checkout
+}
+
+m1: "MEMBER 1 — SCANNER / COMPUTER-DOM LAYER" {
+  style.fill: "#ECFDF5"
+  style.stroke: "#059669"
+  style.stroke-width: 2
+
+  api_call: "scan_page(url, scan_id)" {
+    shape: rectangle
+    style.fill: "#D1FAE5"
+  }
+  browser: "Playwright + Chromium\nURL validation\nNavigation + timeout handling" {
+    shape: rectangle
+  }
+  capture: "Page capture\nHTML + title + final URL\nDOM snapshot" {
+    shape: rectangle
+  }
+  dom: "DOM extractor\nbuttons · forms · inputs\ncheckboxes · radios\nprices · discounts · links\npopups · timers · text" {
+    shape: rectangle
+  }
+  state: "Interaction state\nchecked / unchecked\nenabled / disabled\nvisible / hidden\nselected / pre-filled" {
+    shape: rectangle
+  }
+  shots: "Screenshot capture\nfull_page.png\nproduct.png\ncart.png\ncheckout.png" {
+    shape: rectangle
+  }
+  structural: "Structural rules\nDP01: pre-ticked checkbox\nDP02: timer / scarcity signals\nprice-flow evidence" {
+    shape: rectangle
+    style.fill: "#A7F3D0"
+  }
+  evidence: "Evidence writer\nselectors + text + bbox\npage + screenshot + state" {
+    shape: cylinder
+    style.fill: "#A7F3D0"
+  }
+
+  api_call -> browser -> capture
+  capture -> dom
+  capture -> state
+  capture -> shots
+  dom -> structural
+  state -> structural
+  dom -> evidence
+  state -> evidence
+  shots -> evidence
+  structural -> evidence
+}
+
+evidence_store: "EVIDENCE STORAGE — local prototype" {
+  style.fill: "#FFFBEB"
+  style.stroke: "#D97706"
+  style.stroke-width: 2
+
+  files: "evidence/scans/SCAN-001/" {
+    shape: cylinder
+    style.fill: "#FEF3C7"
+  }
+  files_detail: "screenshots/\n  full_page.png\n  product.png\n  cart.png\n  checkout.png\ndom/\n  page.html\n  elements.json\n  text.json\nscan.json" {
+    shape: rectangle
+    style.fill: "#FEF3C7"
+  }
+  files -> files_detail
+}
+
+m2: "MEMBER 2 — DETECTION INTELLIGENCE" {
+  style.fill: "#FFF7ED"
+  style.stroke: "#EA580C"
+  style.stroke-width: 2
+
+  input: "Scanner JSON\nvisible text + DOM evidence\nstructural signals" {
+    shape: rectangle
+    style.fill: "#FFEDD5"
+  }
+  config: "Central rule configuration\nDP01 DOM\nDP02 NLP + DOM\nDP03 NLP\nDP04 price flow\nDP05 price analysis" {
+    shape: rectangle
+  }
+  baseline: "Rule / keyword baseline\nonly · left · limited\nhurry · expires\nlast chance · act now" {
+    shape: rectangle
+  }
+  nlp: "NLP classifier\nDeBERTa-v3-base\npattern + confidence" {
+    shape: rectangle
+  }
+  pricing: "Price analysis\nmisleading discount\ndrip pricing / hidden costs" {
+    shape: rectangle
+  }
+  fusion: "Detection output\nstatus: CANDIDATE / VERIFIED\nconfidence + evidence" {
+    shape: cylinder
+    style.fill: "#FED7AA"
+  }
+
+  input -> config
+  input -> baseline
+  input -> pricing
+  config -> baseline
+  baseline -> nlp
+  nlp -> fusion
+  pricing -> fusion
+  input -> fusion
+}
+
+m3: "MEMBER 3 — BACKEND / RISK / COMPLIANCE" {
+  style.fill: "#F5F3FF"
+  style.stroke: "#7C3AED"
+  style.stroke-width: 2
+
+  api: "FastAPI\nPOST /scan\nGET /scan/{id}\nGET /results\nGET /evidence\nGET /reports\nGET /history" {
+    shape: rectangle
+    style.fill: "#EDE9FE"
+  }
+  orchestrator: "Scan orchestrator\ncreate scan_id\ncall scanner\ncall detection\ncombine results" {
+    shape: rectangle
+  }
+  contract: "Shared JSON contract\nscan_id · url · timestamp\nrisk_score · risk_level\nfindings · evidence" {
+    shape: rectangle
+  }
+  risk: "Explainable risk engine\nseverity weight × confidence\nHIGH=20 MEDIUM=10 LOW=5\nLOW / MEDIUM / HIGH / CRITICAL" {
+    shape: rectangle
+  }
+  compliance: "Compliance mapper\nCCPA category\nrecommendation\nethical UX fix" {
+    shape: rectangle
+  }
+  db: "SQLite prototype\nscans · findings · evidence\nreports · history" {
+    shape: cylinder
+    style.fill: "#DDD6FE"
+  }
+  report: "Report generator\nJSON / PDF-ready result" {
+    shape: rectangle
+  }
+
+  api -> orchestrator
+  orchestrator -> contract
+  contract -> risk
+  contract -> compliance
+  risk -> db
+  compliance -> db
+  contract -> db
+  db -> report
+}
+
+m4_ui: "MEMBER 4 — REACT PRODUCT EXPERIENCE" {
+  style.fill: "#FDF2F8"
+  style.stroke: "#DB2777"
+  style.stroke-width: 2
+
+  home: "Home / New Scan\nURL input + Start Scan" {
+    shape: rectangle
+  }
+  progress: "Scanning status\nFetching · parsing DOM\nScreenshots · NLP\nPricing · evidence" {
+    shape: rectangle
+  }
+  results: "Results dashboard\nrisk score + risk level\npattern cards + confidence" {
+    shape: rectangle
+  }
+  evidence_view: "Evidence viewer\nexact text + selector\nscreenshot + explanation\nrecommendation" {
+    shape: rectangle
+  }
+  heatmap: "Heatmap\nbounding-box overlay\nflagged UI elements" {
+    shape: rectangle
+  }
+  simulator: "Ethical UX simulator\nBEFORE → AFTER\nchecked → unchecked\nshaming → neutral wording" {
+    shape: rectangle
+  }
+  reports: "Reports + history\ncompliance map\nPDF/report view" {
+    shape: rectangle
+  }
+
+  home -> progress -> results
+  results -> evidence_view
+  results -> heatmap
+  results -> simulator
+  results -> reports
+}
+
+user -> home
+home -> m3.api: "POST /scan"
+m3.api -> m1.api_call: "scanner invocation"
+m1.browser -> m4_demo.darkshop: "open URL"
+m1.evidence -> evidence_store.files: "write artifacts"
+evidence_store.files -> m2.input: "read evidence"
+m1.evidence -> m2.input: "scanner JSON"
+m2.fusion -> m3.orchestrator: "findings + confidence + evidence"
+m3.report -> m4_ui.results: "final result JSON"
+m3.db -> m4_ui.reports: "history / reports"
+evidence_store.files -> m4_ui.evidence_view: "screenshots + DOM refs"
+m3.contract -> m4_ui.results: "risk + findings"
+m1.evidence -> m4_ui.heatmap: "bbox + screenshot"
+m3.compliance -> m4_ui.simulator: "recommendation + ethical fix"
+m4_ui.results -> user
+
+legend: "SEQUENCE / OWNERSHIP" {
+  shape: rectangle
+  style.fill: "#FFFFFF"
+  style.stroke: "#64748B"
+  text: "1. M4 creates controlled website\n2. M1 scans and writes evidence\n3. M2 detects patterns\n4. M3 integrates, scores, stores\n5. M4 displays and visualizes\n\nGreen=M1  Orange=M2  Purple=M3  Pink=M4  Yellow=storage"
+}

@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>DarkPatternGuard Simple Workflow</title>
+<style>
+  @page { size: A4 portrait; margin: 0; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: #dbe4ef; }
+  body {
+    font-family: Arial, Helvetica, sans-serif;
+    color: #172033;
+  }
+  .canvas {
+    width: 794px;
+    height: 1123px;
+    overflow: hidden;
+    background: #ffffff;
+    display: flex;
+    justify-content: center;
+  }
+  .page {
+    width: 1080px;
+    min-height: 1605px;
+    margin: 0;
+    padding: 34px 42px 28px;
+    background: #ffffff;
+    transform: scale(.64);
+    transform-origin: top left;
+  }
+  .header {
+    text-align: center;
+    border-bottom: 3px solid #172033;
+    padding-bottom: 15px;
+    margin-bottom: 18px;
+  }
+  h1 { margin: 0; font-size: 29px; letter-spacing: 0.2px; }
+  .subtitle { margin: 7px 0 0; font-size: 14px; color: #536174; }
+  .intro {
+    background: #172033;
+    color: white;
+    border-radius: 12px;
+    padding: 12px 17px;
+    text-align: center;
+    font-size: 15px;
+    font-weight: bold;
+    margin-bottom: 16px;
+  }
+  .flow { display: flex; flex-direction: column; gap: 0; }
+  .step {
+    display: grid;
+    grid-template-columns: 51px 1fr;
+    gap: 13px;
+    align-items: stretch;
+  }
+  .number {
+    width: 43px;
+    height: 43px;
+    border-radius: 50%;
+    color: #fff;
+    font-size: 21px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 4px;
+  }
+  .card {
+    border: 2px solid;
+    border-radius: 12px;
+    padding: 10px 14px 11px;
+    background: #fff;
+  }
+  .member { font-size: 12px; font-weight: bold; letter-spacing: .4px; text-transform: uppercase; margin-bottom: 3px; }
+  .title { font-size: 18px; font-weight: 800; margin-bottom: 5px; }
+  .card ul { margin: 0; padding-left: 18px; font-size: 13px; line-height: 1.35; }
+  .deliverable {
+    display: inline-block;
+    margin-top: 7px;
+    padding: 4px 9px;
+    border-radius: 7px;
+    font-size: 12px;
+    font-weight: bold;
+    background: rgba(255,255,255,.75);
+  }
+  .arrow {
+    height: 21px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #718096;
+    font-size: 22px;
+    font-weight: bold;
+  }
+  .m4 .number, .m4 .deliverable { background: #2563eb; }
+  .m4 .card { border-color: #60a5fa; background: #eff6ff; }
+  .m4 .member { color: #1d4ed8; }
+  .m1 .number, .m1 .deliverable { background: #059669; }
+  .m1 .card { border-color: #34d399; background: #ecfdf5; }
+  .m1 .member { color: #047857; }
+  .m2 .number, .m2 .deliverable { background: #ea580c; }
+  .m2 .card { border-color: #fb923c; background: #fff7ed; }
+  .m2 .member { color: #c2410c; }
+  .m3 .number, .m3 .deliverable { background: #7c3aed; }
+  .m3 .card { border-color: #a78bfa; background: #f5f3ff; }
+  .m3 .member { color: #6d28d9; }
+  .all .number, .all .deliverable { background: #374151; }
+  .all .card { border-color: #6b7280; background: #f3f4f6; }
+  .all .member { color: #374151; }
+  .checkpoint {
+    margin: 3px 0 3px 64px;
+    padding: 5px 10px;
+    border-left: 4px solid #f59e0b;
+    background: #fffbeb;
+    font-size: 11.5px;
+    color: #7c4a03;
+    font-weight: bold;
+  }
+  .footer {
+    margin-top: 16px;
+    padding-top: 11px;
+    border-top: 2px solid #cbd5e1;
+    text-align: center;
+    font-size: 13px;
+    font-weight: bold;
+    color: #172033;
+  }
+  .footer span { color: #2563eb; }
+  @media print {
+    html, body { background: #fff; }
+    .page { margin: 0; }
+  }
+</style>
+</head>
+<body>
+<div class="canvas"><main class="page">
+  <header class="header">
+    <h1>DarkPatternGuard — Simple Working Flow</h1>
+    <p class="subtitle">Follow these steps in order. Each step must work before moving to the next step.</p>
+  </header>
+
+  <div class="intro">START: Build the website → scan it → detect patterns → calculate risk → show the result</div>
+
+  <section class="flow">
+    <div class="step m4">
+      <div class="number">1</div>
+      <div class="card">
+        <div class="member">Member 4 — Demo Website</div>
+        <div class="title">Build the DarkShop website</div>
+        <ul>
+          <li>Create product, cart, and checkout pages.</li>
+          <li>Add prices, discount, timer, and “Only 2 left” text.</li>
+          <li>Add a checked “Add ₹50 donation” checkbox.</li>
+          <li>Give the team the website URL and element IDs.</li>
+        </ul>
+        <span class="deliverable">Result: A working website to test</span>
+      </div>
+    </div>
+    <div class="checkpoint">Checkpoint: DarkShop opens and the checked donation checkbox is visible.</div>
+    <div class="arrow">↓</div>
+
+    <div class="step m1">
+      <div class="number">2</div>
+      <div class="card">
+        <div class="member">Member 1 — Scanner</div>
+        <div class="title">Open and inspect the website</div>
+        <ul>
+          <li>Open the URL using Playwright and Chromium.</li>
+          <li>Read the page title, URL, HTML, and visible text.</li>
+          <li>Find buttons, forms, checkboxes, prices, timers, and links.</li>
+          <li>Record selectors and element positions.</li>
+        </ul>
+        <span class="deliverable">Result: Structured webpage data</span>
+      </div>
+    </div>
+    <div class="checkpoint">Checkpoint: The scanner can find #donation, #scarcity-text, and #offer-timer.</div>
+    <div class="arrow">↓</div>
+
+    <div class="step m1">
+      <div class="number">3</div>
+      <div class="card">
+        <div class="member">Member 1 — Evidence</div>
+        <div class="title">Save states, screenshots, and evidence</div>
+        <ul>
+          <li>Check whether the donation checkbox is already checked.</li>
+          <li>Capture product, cart, checkout, and full-page screenshots.</li>
+          <li>Save HTML, text, selectors, and bounding boxes.</li>
+          <li>Create the first DP01 Basket Sneaking candidate.</li>
+        </ul>
+        <span class="deliverable">Result: Evidence JSON + screenshots</span>
+      </div>
+    </div>
+    <div class="checkpoint">Checkpoint: DP01 contains text, selector, page, screenshot, and checked=true.</div>
+    <div class="arrow">↓</div>
+
+    <div class="step m2">
+      <div class="number">4</div>
+      <div class="card">
+        <div class="member">Member 2 — Detection</div>
+        <div class="title">Understand and classify the evidence</div>
+        <ul>
+          <li>Read the scanner’s text and evidence JSON.</li>
+          <li>Confirm Basket Sneaking.</li>
+          <li>Detect False Urgency using timer and scarcity keywords.</li>
+          <li>Detect Confirm Shaming from guilt-based wording.</li>
+          <li>Add DeBERTa only after the simple rules work.</li>
+        </ul>
+        <span class="deliverable">Result: Pattern + confidence + evidence</span>
+      </div>
+    </div>
+    <div class="checkpoint">Checkpoint: DP01, DP02, and DP03 findings use the same JSON format.</div>
+    <div class="arrow">↓</div>
+
+    <div class="step m3">
+      <div class="number">5</div>
+      <div class="card">
+        <div class="member">Member 3 — Backend</div>
+        <div class="title">Connect everything through the API</div>
+        <ul>
+          <li>Create POST /scan and the result/evidence endpoints.</li>
+          <li>Call Member 1’s scanner and Member 2’s detector.</li>
+          <li>Save scans and findings in SQLite.</li>
+          <li>Calculate risk score and risk level.</li>
+          <li>Add compliance category and recommendation.</li>
+        </ul>
+        <span class="deliverable">Result: Complete result JSON from the API</span>
+      </div>
+    </div>
+    <div class="checkpoint">Checkpoint: POST /scan returns findings, risk, evidence, and recommendations.</div>
+    <div class="arrow">↓</div>
+
+    <div class="step m4">
+      <div class="number">6</div>
+      <div class="card">
+        <div class="member">Member 4 — Frontend</div>
+        <div class="title">Show the result to the user</div>
+        <ul>
+          <li>Add the URL input and Start Scan button.</li>
+          <li>Show scan progress while the backend is working.</li>
+          <li>Display risk score, patterns, confidence, and severity.</li>
+          <li>Show the screenshot, selector, and highlighted element.</li>
+          <li>Show the ethical Before → After recommendation.</li>
+        </ul>
+        <span class="deliverable">Result: A usable judge-ready dashboard</span>
+      </div>
+    </div>
+    <div class="arrow">↓</div>
+
+    <div class="step all">
+      <div class="number">7</div>
+      <div class="card">
+        <div class="member">Everyone — Final Integration</div>
+        <div class="title">Run the complete demo and test it</div>
+        <ul>
+          <li>Enter the DarkShop URL in the dashboard.</li>
+          <li>Run the scan from beginning to end.</li>
+          <li>Verify evidence and the heatmap.</li>
+          <li>Test a clean page to prevent false findings.</li>
+          <li>Add remaining patterns only after DP01 works fully.</li>
+        </ul>
+        <span class="deliverable">FINAL: Detect → Explain → Fix</span>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">Correct order: <span>Website</span> → <span>Scanner</span> → <span>Detection</span> → <span>Backend</span> → <span>Dashboard</span> → <span>Demo</span></footer>
+</main></div>
+</body>
+</html>

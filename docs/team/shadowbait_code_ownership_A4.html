@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>shadowbait Code Ownership</title>
+<style>
+@page { size: A4 portrait; margin: 0; }
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; background: #dbe4ef; }
+body { font-family: Arial, Helvetica, sans-serif; color: #172033; }
+.canvas { width: 794px; height: 1123px; overflow: hidden; background: #fff; display: flex; justify-content: center; }
+.page { width: 1080px; min-height: 1600px; padding: 36px 50px; background: #fff; transform: scale(.64); transform-origin: top left; }
+.header { text-align: center; border-bottom: 3px solid #172033; padding-bottom: 14px; margin-bottom: 15px; }
+h1 { margin: 0; font-size: 30px; }
+.subtitle { margin: 6px 0 0; color: #5b6678; font-size: 15px; }
+.tree { background: #172033; color: #fff; border-radius: 12px; padding: 13px 20px; font-family: "Courier New", monospace; font-size: 14px; line-height: 1.45; margin-bottom: 16px; }
+.tree b { color: #93c5fd; }
+.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.card { border: 2px solid; border-radius: 12px; padding: 13px 15px; min-height: 255px; }
+.card h2 { margin: 0 0 3px; font-size: 19px; }
+.card .role { font-size: 13px; font-weight: bold; margin-bottom: 9px; }
+.card ul { margin: 0; padding-left: 19px; font-size: 13px; line-height: 1.42; }
+.card code { font-family: "Courier New", monospace; font-size: 12px; font-weight: bold; }
+.card .output { margin-top: 10px; padding: 6px 9px; border-radius: 7px; color: #fff; font-size: 12px; font-weight: bold; }
+.m1 { background: #ecfdf5; border-color: #10b981; }
+.m1 h2, .m1 .role { color: #047857; }
+.m1 .output { background: #059669; }
+.m2 { background: #fff7ed; border-color: #f97316; }
+.m2 h2, .m2 .role { color: #c2410c; }
+.m2 .output { background: #ea580c; }
+.m3 { background: #f5f3ff; border-color: #8b5cf6; }
+.m3 h2, .m3 .role { color: #6d28d9; }
+.m3 .output { background: #7c3aed; }
+.m4 { background: #eff6ff; border-color: #3b82f6; }
+.m4 h2, .m4 .role { color: #1d4ed8; }
+.m4 .output { background: #2563eb; }
+.shared { margin-top: 14px; border: 2px solid #64748b; border-radius: 12px; background: #f8fafc; padding: 13px 15px; }
+.shared h2 { margin: 0 0 7px; font-size: 19px; color: #334155; }
+.shared-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 7px 22px; font-size: 13px; line-height: 1.4; }
+.shared-grid code { font-family: "Courier New", monospace; font-weight: bold; font-size: 12px; }
+.bottom { margin-top: 14px; background: #fffbeb; border-left: 5px solid #f59e0b; padding: 10px 13px; font-size: 13px; line-height: 1.4; }
+.bottom strong { color: #92400e; }
+.footer { text-align: center; margin-top: 14px; font-size: 14px; font-weight: bold; color: #172033; }
+</style>
+</head>
+<body>
+<div class="canvas"><main class="page">
+<header class="header">
+  <h1>shadowbait — Code Ownership Map</h1>
+  <p class="subtitle">Each member works only in their assigned paths. Integrate through shared contracts.</p>
+</header>
+
+<div class="tree"><b>shadowbait/</b><br>
+├── backend/app/ &nbsp; <b>← Members 1, 2, 3</b><br>
+├── frontend/ &nbsp;&nbsp;&nbsp;&nbsp; <b>← Member 4</b><br>
+├── demo-site/ &nbsp;&nbsp;&nbsp; <b>← Member 4</b><br>
+├── evidence/ &nbsp;&nbsp;&nbsp;&nbsp; <b>← Scanner output</b><br>
+├── tests/ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <b>← Everyone</b><br>
+└── docs/ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <b>← Everyone</b></div>
+
+<section class="grid">
+<article class="card m1">
+  <h2>Member 1 — Scanner Engineer</h2>
+  <div class="role">Website inspection and evidence collection</div>
+  <ul>
+    <li><code>backend/app/crawler/playwright_engine.py</code><br>Launch Chromium, open URL, handle timeout.</li>
+    <li><code>backend/app/crawler/dom_extractor.py</code><br>Extract DOM, text, buttons, forms, prices, links.</li>
+    <li><code>backend/app/crawler/interaction_engine.py</code><br>Read checked, enabled, visible, selected states.</li>
+    <li><code>backend/app/crawler/page_capture.py</code><br>Capture product, cart, checkout, full-page images.</li>
+    <li><code>backend/app/crawler/structural_rules.py</code><br>Detect pre-ticked checkbox, timers, scarcity.</li>
+    <li><code>backend/app/crawler/evidence_writer.py</code><br>Save HTML, JSON, screenshots, selectors, bounding boxes.</li>
+  </ul>
+  <div class="output">Output: scanner JSON + evidence files</div>
+</article>
+
+<article class="card m2">
+  <h2>Member 2 — Detection Engineer</h2>
+  <div class="role">Rules, NLP, confidence, and pattern classification</div>
+  <ul>
+    <li><code>backend/app/detection/rule_engine.py</code><br>Central DP01–DP05 rule configuration.</li>
+    <li><code>backend/app/detection/pattern_detector.py</code><br>Convert scanner evidence into findings.</li>
+    <li><code>backend/app/detection/evidence_engine.py</code><br>Require evidence before verification.</li>
+    <li><code>backend/app/nlp/preprocessing.py</code><br>Clean and prepare UI text.</li>
+    <li><code>backend/app/nlp/classifier.py</code><br>Keyword baseline, then DeBERTa.</li>
+    <li><code>ml/nlp/</code><br>Training/evaluation/inference only if needed.</li>
+  </ul>
+  <div class="output">Output: pattern + confidence + evidence</div>
+</article>
+
+<article class="card m3">
+  <h2>Member 3 — Backend Engineer</h2>
+  <div class="role">API, orchestration, storage, risk, and compliance</div>
+  <ul>
+    <li><code>backend/app/api/scan.py</code><br>POST /scan and scan status.</li>
+    <li><code>backend/app/api/results.py</code><br>Return final results and evidence.</li>
+    <li><code>backend/app/database/</code><br>SQLite models and database access.</li>
+    <li><code>backend/app/risk/risk_engine.py</code><br>Severity × confidence score.</li>
+    <li><code>backend/app/compliance/</code><br>CCPA mapping and recommendations.</li>
+    <li><code>backend/app/reports/</code><br>Report and history output.</li>
+    <li><code>backend/app/main.py</code><br>Connect API routes and services.</li>
+  </ul>
+  <div class="output">Output: complete API result JSON</div>
+</article>
+
+<article class="card m4">
+  <h2>Member 4 — Product Engineer</h2>
+  <div class="role">DarkShop, React dashboard, and visual experience</div>
+  <ul>
+    <li><code>demo-site/src/</code><br>Product, cart, checkout, stable element IDs.</li>
+    <li><code>frontend/src/pages/</code><br>Home, Scanner, Results, Evidence, Reports.</li>
+    <li><code>frontend/src/components/</code><br>Cards, progress, heatmap, simulator.</li>
+    <li><code>frontend/src/services/api.js</code><br>Call backend endpoints.</li>
+    <li><code>frontend/src/hooks/</code><br>Scan status and result state.</li>
+    <li><code>frontend/src/utils/</code><br>Formatting and display helpers.</li>
+  </ul>
+  <div class="output">Output: live judge-ready product UI</div>
+</article>
+</section>
+
+<section class="shared">
+  <h2>Shared paths — Everyone contributes carefully</h2>
+  <div class="shared-grid">
+    <div><code>tests/scanner/</code> — Member 1</div>
+    <div><code>tests/detection/</code> — Member 2</div>
+    <div><code>tests/backend/</code> — Member 3</div>
+    <div><code>tests/frontend/</code> — Member 4</div>
+    <div><code>tests/integration/</code> — Everyone</div>
+    <div><code>docs/</code> — Everyone</div>
+    <div><code>evidence/</code> — generated scanner output</div>
+    <div><code>README.md</code> — team-approved updates</div>
+  </div>
+</section>
+
+<div class="bottom"><strong>Do not cross-edit modules:</strong> Member 1 sends scanner JSON → Member 2 sends findings → Member 3 integrates and scores → Member 4 displays the result. Use the shared JSON contract instead of changing another member’s code.</div>
+<div class="footer">Code flow: <b>crawler</b> → <b>detection</b> → <b>API/risk</b> → <b>frontend</b></div>
+</main></div>
+</body>
+</html>
