@@ -2,6 +2,7 @@ from playwright.sync_api import sync_playwright
 import os
 
 base = os.environ.get('SHADOWBAIT_URL', 'http://127.0.0.1:4173')
+chromium_path = os.environ.get('SHADOWBAIT_CHROMIUM_PATH')
 forbidden = [
     '#scarcity-text', '#offer-timer', '#donation', '#confirm-shaming',
     '[data-ccpa-pattern="SUBSCRIPTION_TRAP"]',
@@ -10,7 +11,8 @@ forbidden = [
     '[data-ccpa-pattern="DRIP_PRICING"]',
 ]
 with sync_playwright() as p:
-    browser = p.chromium.launch(executable_path='/usr/bin/chromium')
+    launch_options = {'executable_path': chromium_path} if chromium_path else {}
+    browser = p.chromium.launch(**launch_options)
     page = browser.new_page(viewport={'width': 1440, 'height': 1000})
     page.goto(base + '/clean-page', wait_until='networkidle')
     findings = {selector: page.locator(selector).count() for selector in forbidden}

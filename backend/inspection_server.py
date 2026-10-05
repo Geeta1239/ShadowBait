@@ -57,6 +57,14 @@ def write_json(path: Path, value: dict) -> None:
     path.write_text(json.dumps(value, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 
 
+def launch_browser(playwright):
+    options = {}
+    custom_path = os.environ.get("SHADOWBAIT_CHROMIUM_PATH")
+    if custom_path:
+        options["executable_path"] = custom_path
+    return playwright.chromium.launch(**options)
+
+
 class Handler(BaseHTTPRequestHandler):
     def log_message(self, fmt: str, *args) -> None:
         print("[inspection-api] " + fmt % args, flush=True)
@@ -112,7 +120,7 @@ class Handler(BaseHTTPRequestHandler):
         sse(self, "started", {**scan_meta, "total": len(FINDINGS), "message": "Chromium browser started with a fresh context."})
         captured = []
         with sync_playwright() as playwright:
-            browser = playwright.chromium.launch(executable_path="/usr/bin/chromium")
+            browser = launch_browser(playwright)
             context = browser.new_context(viewport={"width": 1440, "height": 1000}, color_scheme="light")
             page = context.new_page()
             for index, finding in enumerate(FINDINGS):
