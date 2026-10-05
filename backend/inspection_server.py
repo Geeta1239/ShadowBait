@@ -3,19 +3,21 @@ from __future__ import annotations
 import base64
 import json
 import os
-import time
+import re
 from datetime import datetime, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
-from io import BytesIO
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
 from playwright.sync_api import sync_playwright
 
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
 HOST = os.environ.get("INSPECTION_API_HOST", "0.0.0.0")
 PORT = int(os.environ.get("INSPECTION_API_PORT", "5050"))
-DEFAULT_TARGET = os.environ.get("SHADOWBAIT_TARGET_URL", "http://127.0.0.1:4173")
-LIVE_ROOT = Path(__file__).resolve().parents[1] / "evidence" / "live-scans"
+DEFAULT_TARGET = os.environ.get("SHADOWBAIT_TARGET_URL", "http://127.0.0.1:3000").rstrip("/")
+EVIDENCE_ROOT = Path(os.environ.get("SHADOWBAIT_EVIDENCE_DIR", str(REPO_ROOT / "evidence"))).resolve()
+LIVE_ROOT = EVIDENCE_ROOT / "live-scans"
 LIVE_ROOT.mkdir(parents=True, exist_ok=True)
 
 FINDINGS = [
@@ -39,6 +41,22 @@ def data_url(png: bytes) -> str:
     return "data:image/png;base64," + base64.b64encode(png).decode("ascii")
 
 
+def slug(value: str) -> str:
+    value = re.sub(r"[^a-zA-Z0-9]+", "-", value.strip("/"))
+    return value.strip("-").lower() or "home"
+
+
+def repo_path(path: Path) -> str:
+    try:
+        return path.resolve().relative_to(REPO_ROOT).as_posix()
+    except ValueError:
+        return str(path.resolve())
+
+
+def write_json(path: Path, value: dict) -> None:
+    path.write_text(json.dumps(value, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+
+
 class Handler(BaseHTTPRequestHandler):
     def log_message(self, fmt: str, *args) -> None:
         print("[inspection-api] " + fmt % args, flush=True)
@@ -53,7 +71,7 @@ class Handler(BaseHTTPRequestHandler):
     def do_GET(self) -> None:
         parsed = urlparse(self.path)
         if parsed.path == "/health":
-            body = json.dumps({"ok": True, "target": DEFAULT_TARGET}).encode()
+            body = json.dumps({"ok": True, "target": DEFAULT_TARGET, "evidence_root": repo_path(EVIDENCE_ROOT)}).encode()
             self.send_response(200)
             self.send_header("Content-Type", "application/json")
             self.send_header("Access-Control-Allow-Origin", "*")
@@ -74,18 +92,23 @@ class Handler(BaseHTTPRequestHandler):
         self.end_headers()
         try:
             self.run_scan(target)
+            self.close_connection = True
         except Exception as exc:
             try:
                 sse(self, "error", {"message": str(exc)})
+                self.close_connection = True
             except BrokenPipeError:
                 pass
 
     def run_scan(self, target: str) -> None:
         scan_id = "live-" + datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
         out_dir = LIVE_ROOT / scan_id
-        out_dir.mkdir(parents=True, exist_ok=True)
+        screenshots_dir = out_dir / "screenshots"
+        dom_dir = out_dir / "dom"
+        screenshots_dir.mkdir(parents=True, exist_ok=True)
+        dom_dir.mkdir(parents=True, exist_ok=True)
         started_at = datetime.now(timezone.utc).isoformat()
-        scan_meta = {"scan_id": scan_id, "target": target, "browser": "Chromium", "viewport": {"width": 1440, "height": 1000}, "started_at": started_at}
+        scan_meta = {"scan_id": scan_id, "target": target, "browser": "Chromium", "viewport": {"width": 1440, "height": 1000}, "started_at": started_at, "output_root": repo_path(out_dir)}
         sse(self, "started", {**scan_meta, "total": len(FINDINGS), "message": "Chromium browser started with a fresh context."})
         captured = []
         with sync_playwright() as playwright:
@@ -105,26 +128,27 @@ class Handler(BaseHTTPRequestHandler):
                     text = page.locator("label[for=donation]").inner_text()
                 if finding["id"] == "DP08":
                     text = page.locator(".drip-tag").inner_text()
-                screenshot = page.screenshot(full_page=True)
-                screenshot_name = f"{finding["id"].lower()}-{finding["name"].lower().replace(" ", "-")}.png"
-                screenshot_path = out_dir / screenshot_name
-                screenshot_path.write_bytes(screenshot)
-                result = {**finding, "status": "VERIFIED", "visible": visible, "observed_text": text, "element_state": element_state, "screenshot": data_url(screenshot), "screenshot_file": str(screenshot_path.relative_to(LIVE_ROOT.parent.parent)), "captured_at": datetime.now(timezone.utc).isoformat()}
+                route_slug = slug(finding["route"])
+                screenshot_path = screenshots_dir / f"{finding['id'].lower()}-{slug(finding['name'])}.png"
+                screenshot = page.screenshot(path=str(screenshot_path), full_page=True)
+                html_path = dom_dir / f"{route_slug}.html"
+                text_path = dom_dir / f"{route_slug}-text.json"
+                html_path.write_text(page.content(), encoding="utf-8")
+                write_json(text_path, {"route": finding["route"], "url": page.url, "title": page.title(), "visible_text": page.locator("body").inner_text()})
+                result = {**finding, "status": "VERIFIED", "visible": visible, "observed_text": text, "element_state": element_state, "screenshot": data_url(screenshot), "screenshot_file": repo_path(screenshot_path), "dom_html_file": repo_path(html_path), "dom_text_file": repo_path(text_path), "captured_at": datetime.now(timezone.utc).isoformat()}
                 if finding["id"] == "DP02":
                     page.locator("#donation").uncheck()
-                    after = page.screenshot(full_page=True)
-                    after_path = out_dir / "dp02-after-uncheck.png"
-                    after_path.write_bytes(after)
+                    after_path = screenshots_dir / "dp02-after-uncheck.png"
+                    after = page.screenshot(path=str(after_path), full_page=True)
                     result["after_screenshot"] = data_url(after)
-                    result["after_screenshot_file"] = str(after_path.relative_to(LIVE_ROOT.parent.parent))
+                    result["after_screenshot_file"] = repo_path(after_path)
                     result["state_transition"] = "checked=true → checked=false"
                 if finding["id"] == "DP05":
                     page.goto(target + "/cancel", wait_until="networkidle")
-                    related = page.screenshot(full_page=True)
-                    related_path = out_dir / "dp05-cancellation-flow.png"
-                    related_path.write_bytes(related)
+                    related_path = screenshots_dir / "dp05-cancellation-flow.png"
+                    related = page.screenshot(path=str(related_path), full_page=True)
                     result["after_screenshot"] = data_url(related)
-                    result["after_screenshot_file"] = str(related_path.relative_to(LIVE_ROOT.parent.parent))
+                    result["after_screenshot_file"] = repo_path(related_path)
                     result["state_transition"] = "/subscribe → /cancel"
                 captured.append(result)
                 sse(self, "finding", {"completed": index + 1, "total": len(FINDINGS), "finding": result, "message": f"Captured {finding['id']} screenshot and saved evidence."})
@@ -132,11 +156,14 @@ class Handler(BaseHTTPRequestHandler):
             browser.close()
         finished_at = datetime.now(timezone.utc).isoformat()
         report = {"scan": {**scan_meta, "finished_at": finished_at}, "findings": captured, "summary": {"verified_findings": len(captured), "pages_scanned": len(set(item["route"] for item in captured))}}
+        scan_path = out_dir / "scan.json"
         report_path = out_dir / "report.json"
-        report_path.write_text(json.dumps(report, indent=2, ensure_ascii=False) + "\n")
-        sse(self, "complete", {"scan_id": scan_id, "completed": len(captured), "total": len(FINDINGS), "findings": captured, "report_file": str(report_path.relative_to(LIVE_ROOT.parent.parent)), "finished_at": finished_at, "message": "Inspection complete — live evidence package ready and saved."})
+        response_path = out_dir / "response.json"
+        for path in (scan_path, report_path, response_path):
+            write_json(path, report)
+        sse(self, "complete", {"scan_id": scan_id, "completed": len(captured), "total": len(FINDINGS), "findings": captured, "scan_file": repo_path(scan_path), "report_file": repo_path(report_path), "response_file": repo_path(response_path), "finished_at": finished_at, "message": "Inspection complete — live evidence package ready and saved."})
 
 
 if __name__ == "__main__":
-    print(f"Inspection API listening on http://{HOST}:{PORT}; target={DEFAULT_TARGET}", flush=True)
+    print(f"Inspection API listening on http://{HOST}:{PORT}; target={DEFAULT_TARGET}; evidence={EVIDENCE_ROOT}", flush=True)
     ThreadingHTTPServer((HOST, PORT), Handler).serve_forever()
