@@ -2,7 +2,7 @@
 
 Controlled test website for the ShadowBaitSentinel/DarkPatternGuard scanner.
 
-This site intentionally contains clearly labelled, simulated dark-pattern fixtures for scanner development. It is not a legal conclusion or a real checkout.
+This site intentionally contains clearly labelled, safe dark-pattern fixtures for scanner development. Seven categories are verified within this controlled demo, five remain simulated fixtures, and Rogue Malware is excluded. It is not a legal conclusion or a real checkout.
 
 ## Run locally
 
@@ -14,7 +14,7 @@ npm run dev
 
 Open:
 
-- http://localhost:3000/ — product flow with the 3 verified findings
+- http://localhost:3000/ — product flow with the 7 verified findings
 - http://localhost:3000/product — product page
 - http://localhost:3000/cart — cart
 - http://localhost:3000/checkout — checkout with Basket Sneaking and Confirm Shaming
@@ -23,6 +23,7 @@ Open:
 - http://localhost:3000/subscribe — Subscription Trap fixture
 - http://localhost:3000/cancel — cancellation-flow fixture
 - http://localhost:3000/bait-switch — Bait and Switch fixture
+- http://localhost:3000/interface-interference — Interface Interference fixture
 
 ## Current CCPA coverage
 
@@ -32,10 +33,10 @@ Open:
 | Basket Sneaking | VERIFIED | `#donation` is checked by default |
 | Confirm Shaming | VERIFIED | `#confirm-shaming` |
 | Forced Action | SIMULATED | CCPA Lab fixture |
-| Subscription Trap | SIMULATED | `/subscribe` → `/cancel` |
-| Interface Interference | SIMULATED | CCPA Lab fixture |
-| Bait and Switch | SIMULATED | `/bait-switch`, `#bait-switch-status` |
-| Drip Pricing | CANDIDATE | Checkout fees and `#total-price` |
+| Subscription Trap | VERIFIED | `/subscribe` → `/cancel` |
+| Interface Interference | VERIFIED | `/interface-interference` |
+| Bait and Switch | VERIFIED | `/bait-switch`, `#bait-switch-status` |
+| Drip Pricing | VERIFIED | Checkout fees, `data-ccpa-pattern="DRIP_PRICING"`, and `#total-price` |
 | Disguised Advertisement | SIMULATED | CCPA Lab fixture |
 | Nagging | SIMULATED | CCPA Lab fixture |
 | Trick Question | SIMULATED | CCPA Lab fixture |
@@ -59,7 +60,7 @@ label text = Add ₹50 donation
 #confirm-shaming = No, I don't want to save money.
 ```
 
-The site also shows an ethical Before → After alternative for the three verified patterns.
+The site also shows ethical Before → After alternatives for the seven verified patterns. Each verified fixture has visible evidence text, stable selectors or data attributes, and a route that Member 1 can scan.
 
 ## Safety boundary
 
