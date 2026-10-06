@@ -19,6 +19,7 @@ sys.path.insert(0, str(REPO_ROOT / "backend"))
 from app.api.scan_orchestrator import ScanStore, validate_scan_request  # noqa: E402
 from app.database.repository import ScanDatabase  # noqa: E402
 from app.integration.m1_m2_adapter import classify_m1_finding  # noqa: E402
+from app.risk.scoring import calculate_risk  # noqa: E402
 
 
 HOST = os.environ.get("INSPECTION_API_HOST", "0.0.0.0")
@@ -291,6 +292,8 @@ class Handler(BaseHTTPRequestHandler):
         finished_at = datetime.now(timezone.utc).isoformat()
         all_m2 = [item for finding in captured for item in finding.get("m2_findings", [])]
         report = {"scan": {**scan_meta, "finished_at": finished_at}, "findings": captured, "summary": {"verified_findings": len(captured), "pages_scanned": len(set(item["route"] for item in captured)), "m2_classified_findings": len(all_m2), "m2_verified_findings": sum(1 for item in all_m2 if item.get("status") == "VERIFIED"), "m2_detection_sources": {source: sum(1 for item in all_m2 if item.get("detection_source") == source) for source in sorted({item.get("detection_source") for item in all_m2})}}}
+        report["risk"] = calculate_risk(report)
+        report["summary"].update({key: value for key, value in report["risk"].items() if key != "scored_findings"})
         scan_path = out_dir / "scan.json"
         report_path = out_dir / "report.json"
         response_path = out_dir / "response.json"

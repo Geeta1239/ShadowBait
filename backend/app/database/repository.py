@@ -95,12 +95,14 @@ class ScanDatabase:
         self.create_scan(scan_id, str(scan.get("target", "")), list(scan.get("pattern_ids", [])), status="COMPLETED")
         with self._lock, self._connect() as db:
             db.execute(
-                """UPDATE scans SET started_at=?, finished_at=?, status=?, report_json=?
-                   WHERE id=?""",
+                """UPDATE scans SET started_at=?, finished_at=?, status=?, overall_risk=?,
+                   risk_level=?, report_json=? WHERE id=?""",
                 (
                     scan.get("started_at"),
                     scan.get("finished_at"),
                     "COMPLETED",
+                    summary.get("risk_score"),
+                    summary.get("risk_level"),
                     json.dumps(report, ensure_ascii=False),
                     scan_id,
                 ),
