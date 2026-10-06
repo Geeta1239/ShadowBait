@@ -1,0 +1,11 @@
+{
+  "task_kind": "new-document",
+  "output": "pdf",
+  "signals": ["native-report"],
+  "hard_constraints": ["screenshots", "13 guideline categories", "evidence reasons and customer impact"],
+  "content_features": {
+    "code_blocks": 0,
+    "defined_terms": 13,
+    "portrait_images": 0
+  }
+}

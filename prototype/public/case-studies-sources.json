@@ -1,0 +1,30 @@
+{
+  "updated": "2026-10-06",
+  "sources": [
+    {
+      "name": "FTC Secures Historic $2.5 Billion Settlement Against Amazon",
+      "url": "https://www.ftc.gov/news-events/news/press-releases/2025/09/ftc-secures-historic-25-billion-settlement-against-amazon",
+      "figures": ["$1 billion civil penalty", "$1.5 billion consumer redress", "estimated 35 million consumers impacted"]
+    },
+    {
+      "name": "FTC Finalizes Order Requiring Fortnite maker Epic Games to Pay $245 Million",
+      "url": "https://www.ftc.gov/news-events/news/press-releases/2023/03/ftc-finalizes-order-requiring-fortnite-maker-epic-games-pay-245-million-tricking-users-making",
+      "figures": ["$245 million consumer refunds"]
+    },
+    {
+      "name": "FTC Refunds Nearly $100 Million to Vonage Consumers",
+      "url": "https://www.ftc.gov/news-events/news/press-releases/2022/11/ftc-refunds-nearly-100-million-vonage-consumers-who-were-trapped-subscriptions-dark-patterns",
+      "figures": ["nearly $100 million refunds"]
+    },
+    {
+      "name": "FTC Report Shows Rise in Sophisticated Dark Patterns",
+      "url": "https://www.ftc.gov/news-events/news/press-releases/2022/09/ftc-report-shows-rise-sophisticated-dark-patterns-designed-trick-trap-consumers",
+      "figures": ["four recurring tactic families described by the report"]
+    },
+    {
+      "name": "Amazon Refunds",
+      "url": "https://www.ftc.gov/enforcement/refunds/amazon-refunds",
+      "figures": ["over $845 million issued by September 2026", "maximum total payment of $200", "automatic refunds through April 2027"]
+    }
+  ]
+}

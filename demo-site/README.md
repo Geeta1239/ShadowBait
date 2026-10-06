@@ -1,102 +1,60 @@
-# DarkShop CCPA Pattern Lab
+# Morrow Market demo storefront
 
-Controlled test website for the ShadowBaitSentinel/DarkPatternGuard scanner.
+Morrow Market is the separate normal e-commerce website that ShadowBait inspects.
 
-This site intentionally contains clearly labelled, safe dark-pattern fixtures for scanner development. Seven categories are verified within this controlled demo, five remain simulated fixtures, and Rogue Malware is excluded. It is not a legal conclusion or a real checkout.
+It is intentionally presented like a regular shopping experience. The dark-pattern behavior is embedded in the customer journey, but the storefront does not explain, label, compare, or analyze those behaviors. All inspection, customer-impact explanation, guidelines, case studies, and ethical alternatives live in the separate ShadowBait platform.
 
 ## Run locally
 
 ```bash
 cd demo-site
 npm install
-npm run dev
+npm run dev -- --port 3000
 ```
 
-Open:
+Open `http://localhost:3000`.
 
-- http://localhost:3000/ — product flow with the 7 verified findings
-- http://localhost:3000/product — product page
-- http://localhost:3000/cart — cart
-- http://localhost:3000/checkout — checkout with Basket Sneaking and Confirm Shaming
-- http://localhost:3000/ccpa-lab — coverage catalogue
-- http://localhost:3000/diff — interactive rule/evidence/customer-harm/ethical-fix comparison
-- http://localhost:3000/inspect — visible Member 1 inspection demo with live progress, captured screenshots, and CCPA explanations
-- http://localhost:3000/subscribe — Subscription Trap fixture
-- http://localhost:3000/cancel — cancellation-flow fixture
-- http://localhost:3000/bait-switch — Bait and Switch fixture
-- http://localhost:3000/interface-interference — Interface Interference fixture
+## Storefront routes
 
-## Current CCPA coverage
+- `/` — Morrow Market home page
+- `/product` — Aster Wireless Headphones product page
+- `/cart` — shopping cart
+- `/checkout` — normal-looking checkout flow
+- `/subscribe` — Morrow Circle membership signup
+- `/cancel` — membership settings and cancellation journey
+- `/bait-switch` — finish-selection product journey
+- `/interface-interference` — membership plan selection
+- `/clean-page` — transparent control page
 
-| CCPA category | Demo status | Main evidence |
+## Scanable customer journeys
+
+The behaviors remain available through ordinary storefront interactions so the inspection pipeline can capture them:
+
+| Journey | Stable evidence | Behavior in the normal UI |
 |---|---|---|
-| False Urgency | VERIFIED | `#scarcity-text`, `#offer-timer` |
-| Basket Sneaking | VERIFIED | `#donation` is checked by default |
-| Confirm Shaming | VERIFIED | `#confirm-shaming` |
-| Forced Action | SIMULATED | CCPA Lab fixture |
-| Subscription Trap | VERIFIED | `/subscribe` → `/cancel` |
-| Interface Interference | VERIFIED | `/interface-interference` |
-| Bait and Switch | VERIFIED | `/bait-switch`, `#bait-switch-status` |
-| Drip Pricing | VERIFIED | Checkout fees, `data-ccpa-pattern="DRIP_PRICING"`, and `#total-price` |
-| Disguised Advertisement | SIMULATED | CCPA Lab fixture |
-| Nagging | SIMULATED | CCPA Lab fixture |
-| Trick Question | SIMULATED | CCPA Lab fixture |
-| SaaS Billing | SIMULATED | CCPA Lab fixture |
-| Rogue Malware | EXCLUDED | No malware-like behavior is created for safety |
+| Product page | `#scarcity-text`, `#offer-timer` | Low-stock message beside a countdown |
+| Checkout | `#donation`, `#confirm-shaming` | Optional contribution starts selected; decline wording is guilt-oriented |
+| Checkout | `data-ccpa-pattern="DRIP_PRICING"`, `#total-price` | Fees appear later in the order summary |
+| Membership | `data-ccpa-pattern="SUBSCRIPTION_TRAP"` | Renewal is selected during signup and cancellation is elsewhere |
+| Plans | `data-ccpa-pattern="INTERFACE_INTERFERENCE"` | One plan receives stronger visual emphasis |
+| Finish selection | `#bait-switch-status` | Offer state can change at the final step |
 
-## Verified product-flow evidence
+These selectors and fixtures are implementation evidence for the scanner; they are not presented as labels to storefront visitors.
 
-On `/product`:
+## Light and dark theme
 
-```text
-#scarcity-text = ONLY 2 LEFT!
-#offer-timer = countdown
-```
+The store includes a light/dark theme toggle and persists the selection under `morrow-theme`. The visual language is intentionally different from ShadowBait: warm cream surfaces, coral actions, teal accents, and editorial product imagery.
 
-On `/checkout`:
-
-```text
-#donation.checked === true
-label text = Add ₹50 donation
-#confirm-shaming = No, I don't want to save money.
-```
-
-The site also shows ethical Before → After alternatives for the seven verified patterns. Each verified fixture has visible evidence text, stable selectors or data attributes, and a route that Member 1 can scan.
+The Arc Task Light and Fold Weekender tiles now use real product photographs referenced from Lamps Plus and Lo & Sons through image search. They are included for this controlled prototype presentation; replace them with licensed or owned photography before public commercial use.
 
 ## Safety boundary
 
-The Place Demo Order button never submits a real order or payment. The Rogue Malware category is intentionally not implemented. All other CCPA Lab entries are safe, non-malicious UI fixtures for scanner development.
+This is a controlled prototype. The demo order button never processes payment, and no real account, subscription, or purchase is created.
 
+## Presentation flow
 
-## Interactive diff page
-
-`/diff` is the primary presentation page for the project demo. Select any of the 13 CCPA categories to animate a three-step chain:
-
-```text
-CCPA rule → observed evidence → customer harm
-```
-
-Use **Ethical fix view** to switch the same chain to the remediated interface and customer benefit. Verified, candidate, simulated, and excluded statuses are shown separately.
-
-
-## Dark mode and product image
-
-The header includes a **Dark / Light** toggle. The selected theme is stored in `localStorage` under `shadowbait-theme`, so it persists after reloads and across the product, checkout, CCPA Lab, and interactive diff pages.
-
-The product page uses the bundled real headphone photograph at `public/assets/headphones-product.jpg`. It is loaded locally through `/assets/headphones-product.jpg`, so the demo does not depend on an external image host during testing.
-
-## Visible inspection demo
-
-Start the live Playwright inspection API from the repository root:
-
-```bash
-python3 backend/inspection_server.py
-```
-
-Then open `http://localhost:3000/inspect` and click **Start Inspection**. The page streams route, selector, screenshot, CCPA explanation, scan metadata, and saved report events from the real browser scan. The API saves each live scan under `evidence/live-scans/<scan-id>/`.
-
-The **Reset Test State** header action resets donation state, timer, theme, and returns to the Shop page. The `/clean-page` route is a false-positive control; verify it with:
-
-```bash
-python3 scripts/clean_page_check.py
-```
+1. Show Morrow Market as a normal website.
+2. Copy its URL.
+3. Open ShadowBait at `http://localhost:3100`.
+4. Enter `http://127.0.0.1:3000` in the inspection console.
+5. Start the scan and explain the captured evidence inside ShadowBait.

@@ -2,9 +2,9 @@
 
 ## Explainable dark-pattern inspection and ethical UX auditing prototype
 
-ShadowBait is a controlled research prototype for inspecting shopping interfaces for dark-pattern signals. The system was designed as a modular pipeline that combines browser automation, structured evidence capture, rule-based/NLP classification, risk scoring, compliance-oriented mapping, SQLite persistence, and a React results dashboard.
+ShadowBait is a controlled research prototype for inspecting shopping interfaces for dark-pattern signals. The system combines a separate consumer-facing demo site, a separate ShadowBait inspection console, browser automation, structured evidence capture, rule-based/NLP classification, risk scoring, compliance-oriented mapping, SQLite persistence, and saved results.
 
-The current implementation is validated against the controlled **DarkShop** demo website. DarkShop contains repeatable, self-authored fixtures that make it possible to test the scanner, evidence contract, detection logic, risk calculation, database persistence, and dashboard consistently.
+The current implementation is validated against the controlled **Morrow Market** demo website. Morrow Market is intentionally presented as a normal e-commerce storefront; its observable interface behavior gives ShadowBait repeatable evidence to capture. The ShadowBait platform owns the inspection console, guidelines, customer-impact explanation, interactive diff, case studies, and report.
 
 > **Technical scope:** The current prototype is not a fully generic crawler for every arbitrary public website. It is a controlled inspection and evidence pipeline designed to expand toward generic DOM discovery, user-journey crawling, browser-extension analysis, and larger annotated datasets.
 
@@ -28,8 +28,8 @@ The project was designed around these goals:
 
 ```text
 ┌──────────────────────────────┐
-│ DarkShop controlled website  │
-│ React + Vite                  │
+│ Morrow Market storefront     │
+│ React + Vite · normal UI      │
 └──────────────┬───────────────┘
                │ target URL
                ▼
@@ -74,9 +74,9 @@ The project was designed around these goals:
 └──────────────┬───────────────┘
                ▼
 ┌──────────────────────────────┐
-│ React saved-results dashboard │
-│ risk, findings, screenshots,  │
-│ mappings, filters, download   │
+│ ShadowBait platform frontend  │
+│ findings, impact, diff,       │
+│ guidelines, cases, download   │
 └──────────────────────────────┘
 ```
 
@@ -84,11 +84,12 @@ The project was designed around these goals:
 
 | Service | Default address | Purpose |
 |---|---|---|
-| DarkShop/Vite | `http://localhost:3000` | Controlled website and React UI |
+| Morrow Market/Vite | `http://localhost:3000` | Separate controlled target website and fixtures |
+| ShadowBait/Vite | `http://localhost:3100` | Separate inspection console and presentation UI |
 | Inspection API | `http://127.0.0.1:5050` | Playwright, SSE, scan API, report generation |
 | SQLite | `evidence/shadowbait.sqlite3` | Scan history and structured persistence |
 
-The Vite development server proxies `/api` and `/health` to the inspection API through `demo-site/vite.config.js`.
+Both Vite development servers proxy `/api` and `/health` to the inspection API through their respective `vite.config.js` files. ShadowBait receives the target site URL explicitly; it no longer assumes that `window.location.origin` is the scan target.
 
 The current backend uses Python’s standard-library threaded HTTP server plus Playwright. The orchestration contract is framework-independent and can be migrated to FastAPI later without changing the evidence or report format.
 
@@ -126,6 +127,12 @@ ShadowBait/
 │   ├── public/
 │   ├── vite.config.js
 │   └── package.json
+├── prototype/
+│   ├── src/main.jsx
+│   ├── src/styles.css
+│   ├── public/manus-routes.json
+│   ├── vite.config.js
+│   └── package.json
 ├── docs/
 │   ├── architecture/
 │   ├── reference documentation/
@@ -156,7 +163,8 @@ ShadowBait/
 | Persistence | SQLite schema and report/evidence storage | `backend/app/database/` |
 | Risk | Severity/confidence/completeness scoring | `backend/app/risk/` |
 | Compliance | Technical category, harm, principle, recommendation mapping | `backend/app/compliance/` |
-| UI | Inspection stream, saved dashboard, report download | `demo-site/src/` |
+| Demo UI | Target pages, fixtures, safe comparison flows | `demo-site/src/` |
+| Prototype UI | URL input, inspection stream, evidence, results, case studies, architecture | `prototype/src/` |
 
 ---
 
@@ -164,7 +172,7 @@ ShadowBait/
 
 ### Step 1 — Controlled website
 
-The DarkShop site contains predictable interface fixtures. Each fixture has a known route, selector, expected state, visible wording, and expected interpretation.
+The Morrow Market site contains predictable interface fixtures. Each fixture has a known route, selector, expected state, visible wording, and expected interpretation.
 
 ### Step 2 — Browser inspection
 
@@ -234,7 +242,7 @@ The complete report is written to JSON, normalized records are stored in SQLite,
 
 ---
 
-## 5. Controlled DarkShop fixtures
+## 5. Controlled Morrow Market fixtures
 
 | ID | Pattern | Route | Evidence target | Current detection role |
 |---|---|---|---|---|
@@ -300,15 +308,18 @@ If PowerShell activation is unavailable:
 cd demo-site
 npm install
 cd ..
+cd prototype
+npm install
+cd ..
 ```
 
 ---
 
 ## 7. Run the local system
 
-Use two terminals from the repository root.
+Use three terminals from the repository root.
 
-### Terminal 1 — DarkShop
+### Terminal 1 — Morrow Market target website
 
 ```bash
 cd demo-site
@@ -321,11 +332,21 @@ Useful routes:
 http://localhost:3000/product
 http://localhost:3000/checkout
 http://localhost:3000/subscribe
-http://localhost:3000/inspect
 http://localhost:3000/clean-page
 ```
 
-### Terminal 2 — inspection API
+The demo site is the website ShadowBait inspects. Its navigation no longer contains the inspection console.
+
+### Terminal 2 — ShadowBait prototype
+
+```bash
+cd prototype
+npm run dev -- --port 3100
+```
+
+Open `http://localhost:3100`, choose **New Inspection**, and enter the demo-site URL, normally `http://127.0.0.1:3000` for a local presentation.
+
+### Terminal 3 — inspection API
 
 ```bash
 PYTHONPATH=backend python backend/inspection_server.py
@@ -336,6 +357,8 @@ Health check:
 ```bash
 curl http://127.0.0.1:5050/health
 ```
+
+The prototype proxies `/api` to the API and starts the live stream with the explicit target URL entered by the presenter.
 
 Optional environment variables:
 
@@ -614,7 +637,7 @@ The mapping is a technical representation of privacy, consent, transparency, and
 
 ### Current ground truth
 
-The current prototype uses a self-authored controlled fixture set embedded in DarkShop. Each fixture provides:
+The current prototype uses a self-authored controlled fixture set embedded in Morrow Market. Each fixture provides:
 
 - Pattern ID
 - Route
@@ -629,7 +652,7 @@ This is a reproducible benchmark set for pipeline validation, not a large genera
 
 ### Current model behavior
 
-The working DarkShop workflow does not train a neural network. Its primary path is:
+The working Morrow Market workflow does not train a neural network. Its primary path is:
 
 ```text
 DOM/state evidence
@@ -813,7 +836,7 @@ Then run the browser inspection from `/inspect` and open the saved dashboard aft
 
 ## 18. Troubleshooting
 
-### DarkShop does not open
+### Morrow Market does not open
 
 ```bash
 cd demo-site

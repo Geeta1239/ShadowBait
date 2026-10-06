@@ -1,0 +1,13 @@
+Here is how ShadowBait turns a website into evidence.
+
+First, we enter the separate demo-store URL, keeping the target experience independent from the analysis platform.
+
+Next, ShadowBait opens a fresh browser and walks through the important routes, capturing screenshots, visible text, selectors, and state changes.
+
+The pipeline classifies each observation and explains the possible customer impact.
+
+In the evidence room, every finding stays connected to its original screenshot.
+
+Finally, the interactive diff compares the pressured choice with a clearer, ethical alternative.
+
+This is evidence before judgment.

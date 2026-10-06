@@ -41,3 +41,9 @@ coverage/
 # Live Playwright inspection runs are generated locally for demos
 evidence/live-scans/*
 !evidence/live-scans/.gitkeep
+# Video recording intermediates; final narrated MP4 remains tracked
+reports/shadowbait-demo-video/*.webm
+reports/shadowbait-demo-video/*.wav
+reports/shadowbait-demo-video/frames/
+reports/dark-pattern-inspection/review/
+reports/shadowbait-demo-video/shadowbait-workflow.mp4

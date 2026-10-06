@@ -1,0 +1,10 @@
+{
+  "routes": [
+    { "path": "/", "title": "ShadowBait Platform" },
+    { "path": "/inspect", "title": "New Website Inspection" },
+    { "path": "/guidelines", "title": "Dark Pattern Review Guidelines" },
+    { "path": "/case-studies", "title": "Real-World Dark Pattern Case Studies" },
+    { "path": "/diff", "title": "Interactive Customer Impact Diff" },
+    { "path": "/architecture", "title": "ShadowBait Architecture" }
+  ]
+}

@@ -1,16 +1,13 @@
 {
   "routes": [
-    { "path": "/", "title": "DarkShop Home" },
-    { "path": "/product", "title": "Premium Wireless Headphones" },
+    { "path": "/", "title": "Morrow Market Home" },
+    { "path": "/product", "title": "Aster Wireless Headphones" },
     { "path": "/cart", "title": "Shopping Cart" },
     { "path": "/checkout", "title": "Checkout" },
-    { "path": "/ccpa-lab", "title": "CCPA Dark Pattern Lab" },
-    { "path": "/diff", "title": "Interactive CCPA Diff" },
-    { "path": "/inspect", "title": "Member 1 Inspection Demo" },
-    { "path": "/clean-page", "title": "Clean False-Positive Comparison" },
-    { "path": "/subscribe", "title": "Subscription Trap Fixture" },
-    { "path": "/cancel", "title": "Cancellation Flow Fixture" },
-    { "path": "/bait-switch", "title": "Bait and Switch Fixture" },
-    { "path": "/interface-interference", "title": "Interface Interference Fixture" },
+    { "path": "/subscribe", "title": "Morrow Circle Membership" },
+    { "path": "/cancel", "title": "Membership Settings" },
+    { "path": "/bait-switch", "title": "Choose Your Finish" },
+    { "path": "/interface-interference", "title": "Membership Plans" },
+    { "path": "/clean-page", "title": "Transparency Promise" }
   ]
 }

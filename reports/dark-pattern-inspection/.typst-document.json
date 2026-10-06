@@ -1,0 +1,10 @@
+{
+  "entry": "main.typ",
+  "metadata": {
+    "author": "ShadowBait Team",
+    "subtitle": "Evidence, customer impact, and ethical alternatives for the Morrow Market demo storefront",
+    "title": "ShadowBait Dark-Pattern Inspection Report"
+  },
+  "mode": "report",
+  "theme": "report-theme.typ"
+}
