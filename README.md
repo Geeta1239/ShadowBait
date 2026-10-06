@@ -2,66 +2,95 @@
 
 ## Explainable dark-pattern inspection and ethical UX auditing prototype
 
-ShadowBait is a controlled research prototype that inspects a demo shopping website, captures browser evidence, classifies supported dark-pattern language, calculates an explainable risk score, maps findings to privacy and consumer-choice principles, stores scan history in SQLite, and presents the result in a React dashboard.
+ShadowBait is a controlled research prototype for inspecting shopping interfaces for dark-pattern signals. The system was designed as a modular pipeline that combines browser automation, structured evidence capture, rule-based/NLP classification, risk scoring, compliance-oriented mapping, SQLite persistence, and a React results dashboard.
 
-> **Important scope statement:** ShadowBait is currently a controlled prototype validated against the DarkShop demo fixtures. It is not legal advice, it does not make an automatic legal determination, and it is not yet a fully generic crawler for every arbitrary public website.
+The current implementation is validated against the controlled **DarkShop** demo website. DarkShop contains repeatable, self-authored fixtures that make it possible to test the scanner, evidence contract, detection logic, risk calculation, database persistence, and dashboard consistently.
+
+> **Technical scope:** The current prototype is not a fully generic crawler for every arbitrary public website. It is a controlled inspection and evidence pipeline designed to expand toward generic DOM discovery, user-journey crawling, browser-extension analysis, and larger annotated datasets.
 
 ---
 
-## 1. One-minute project explanation
+## 1. Design goals
+
+The project was designed around these goals:
+
+1. **Evidence before classification** — a pattern should be supported by visible text, DOM state, selector, page, and screenshot evidence.
+2. **Modular team ownership** — website, scanner, detection, backend, storage, and dashboard layers remain separable.
+3. **Explainable results** — every classification should expose confidence, severity, source, explanation, and recommendation.
+4. **Reproducible validation** — controlled fixtures and a clean comparison page provide repeatable positive and negative tests.
+5. **Persistent results** — a completed scan should remain available after the scan process finishes.
+6. **Safe prototype boundaries** — no payments, authentication, malware, or destructive interaction is required.
+7. **Incremental development** — each workflow stage can be tested before the next stage is added.
+
+---
+
+## 2. System architecture
 
 ```text
-DarkShop demo website
-        ↓
-Playwright + Chromium inspection
-        ↓
-DOM, visible text, state, and screenshot evidence
-        ↓
-M2 rule/NLP classification for supported language patterns
-        ↓
-Explainable severity and confidence risk scoring
-        ↓
-CCPA/dark-pattern principle mapping and recommendation
-        ↓
-SQLite scan history + JSON evidence package
-        ↓
-React results dashboard
+┌──────────────────────────────┐
+│ DarkShop controlled website  │
+│ React + Vite                  │
+└──────────────┬───────────────┘
+               │ target URL
+               ▼
+┌──────────────────────────────┐
+│ Playwright inspection layer  │
+│ Chromium, DOM, text, state,  │
+│ selectors, screenshots       │
+└──────────────┬───────────────┘
+               │ M1 evidence
+               ▼
+┌──────────────────────────────┐
+│ M1 → M2 shared adapter       │
+│ Normalizes evidence and      │
+│ preserves screenshot context │
+└──────────────┬───────────────┘
+               │ normalized evidence text
+               ▼
+┌──────────────────────────────┐
+│ M2 detection layer           │
+│ Rules, NLP compatibility,   │
+│ confidence, severity        │
+└──────────────┬───────────────┘
+               │ findings
+               ▼
+┌──────────────────────────────┐
+│ Scan orchestration API       │
+│ Lifecycle, status, report    │
+│ and evidence endpoints       │
+└──────────────┬───────────────┘
+               │ combined report
+       ┌───────┴────────┐
+       ▼                ▼
+┌──────────────┐  ┌───────────────┐
+│ Risk scoring │  │ Compliance    │
+│ severity ×   │  │ mapping and   │
+│ confidence   │  │ recommendations│
+└──────┬───────┘  └───────┬───────┘
+       └────────┬─────────┘
+                ▼
+┌──────────────────────────────┐
+│ SQLite + JSON evidence files  │
+└──────────────┬───────────────┘
+               ▼
+┌──────────────────────────────┐
+│ React saved-results dashboard │
+│ risk, findings, screenshots,  │
+│ mappings, filters, download   │
+└──────────────────────────────┘
 ```
 
-The simplest explanation for a judge is:
+### Runtime services
 
-> **ShadowBait uses browser automation to capture evidence of suspicious interface patterns, applies explainable rules to supported text, calculates a transparent risk score, attaches an ethical recommendation, and shows the complete result with screenshots in a dashboard.**
-
----
-
-## 2. Current implementation status
-
-| Workflow stage | Current status | Main implementation |
+| Service | Default address | Purpose |
 |---|---|---|
-| Build controlled DarkShop website | Complete | `demo-site/` |
-| Inspect website with Playwright | Complete for controlled fixtures | `backend/inspection_server.py`, `scripts/member1_inspection.py` |
-| Save screenshots and evidence | Complete | `evidence/live-scans/`, `evidence/scans/` |
-| Connect M1 evidence to M2 | Complete for supported language patterns | `backend/app/integration/m1_m2_adapter.py` |
-| Scan orchestration API | Complete | `POST/GET /api/scans` in `backend/inspection_server.py` |
-| SQLite persistence | Complete | `backend/app/database/repository.py` |
-| Risk scoring | Complete | `backend/app/risk/scoring.py` |
-| Compliance mapping and recommendations | Complete as technical mapping | `backend/app/compliance/mapping.py` |
-| Final results dashboard | Complete for saved reports | `demo-site/src/main.jsx` route `/results/<scan_id>` |
-| Clean-page false-positive baseline | Complete | `scripts/clean_page_check.py` |
-| Generic arbitrary-site crawling | Future work | Not yet the current prototype scope |
-| Full ML training dataset | Future work | No neural network is trained by the current demo |
-| PDF audit report | Future enhancement | JSON download currently available |
+| DarkShop/Vite | `http://localhost:3000` | Controlled website and React UI |
+| Inspection API | `http://127.0.0.1:5050` | Playwright, SSE, scan API, report generation |
+| SQLite | `evidence/shadowbait.sqlite3` | Scan history and structured persistence |
 
-The latest implementation has been validated with:
+The Vite development server proxies `/api` and `/health` to the inspection API through `demo-site/vite.config.js`.
 
-```text
-72 backend tests passed
-67 backend subtests passed
-Frontend production build passed
-Full seven-pattern scan completed
-Clean-page false positives: 0
-Dashboard browser smoke test passed
-```
+The current backend uses Python’s standard-library threaded HTTP server plus Playwright. The orchestration contract is framework-independent and can be migrated to FastAPI later without changing the evidence or report format.
 
 ---
 
@@ -70,14 +99,14 @@ Dashboard browser smoke test passed
 ```text
 ShadowBait/
 ├── backend/
-│   ├── inspection_server.py          # HTTP API, SSE stream, Playwright orchestration
+│   ├── inspection_server.py
 │   └── app/
 │       ├── api/
-│       │   └── scan_orchestrator.py # request validation and in-memory lifecycle store
+│       │   └── scan_orchestrator.py
 │       ├── compliance/
-│       │   └── mapping.py            # technical principle/harm/recommendation mapping
+│       │   └── mapping.py
 │       ├── database/
-│       │   └── repository.py          # SQLite schema and persistence
+│       │   └── repository.py
 │       ├── detection/
 │       │   ├── evidence_engine.py
 │       │   ├── fusion.py
@@ -86,82 +115,159 @@ ShadowBait/
 │       │   ├── rule_engine.py
 │       │   └── rules_config.py
 │       ├── integration/
-│       │   └── m1_m2_adapter.py       # scanner evidence → M2 contract
+│       │   └── m1_m2_adapter.py
 │       ├── nlp/
-│       │   └── ...                    # preprocessing and optional inference API
+│       │   └── preprocessing and inference modules
 │       └── risk/
-│           └── scoring.py              # explainable risk calculation
+│           └── scoring.py
 ├── demo-site/
-│   ├── src/main.jsx                   # DarkShop pages, inspection UI, dashboard
-│   ├── src/styles.css                 # UI and dashboard styles
-│   ├── public/                        # static assets
-│   ├── vite.config.js                 # Vite + /api proxy to port 5050
+│   ├── src/main.jsx
+│   ├── src/styles.css
+│   ├── public/
+│   ├── vite.config.js
 │   └── package.json
 ├── docs/
-│   ├── architecture/                  # architecture sources and diagrams
-│   ├── judge-guide/                   # judge-facing explanations and file flow
-│   └── team/                          # serial workflow and ownership contract
+│   ├── architecture/
+│   ├── reference documentation/
+│   └── team/
 ├── evidence/
-│   ├── README.md                      # evidence layout and verifier instructions
-│   ├── member1-step2/                 # checked-in reference evidence
-│   └── live-scans/                    # generated live API scans; ignored by Git
 ├── scripts/
-│   ├── member1_inspection.py          # standalone scanner
-│   ├── verify_scan_outputs.py         # scanner artifact verifier
-│   └── clean_page_check.py             # clean-page false-positive integration test
+│   ├── member1_inspection.py
+│   ├── verify_scan_outputs.py
+│   └── clean_page_check.py
 ├── tests/
-│   ├── backend/                       # detection, API, DB, risk, compliance tests
-│   ├── integration/                   # integration-test location
+│   ├── backend/
+│   ├── integration/
 │   ├── scanner/
 │   └── frontend/
 ├── requirements.txt
 └── README.md
 ```
 
-### Team ownership
+### Ownership boundaries
 
-| Owner | Responsibility | Main folders |
+| Area | Responsibility | Main implementation |
 |---|---|---|
-| Member 1 | Browser inspection, DOM, screenshots, state evidence | `backend/inspection_server.py`, `scripts/`, `evidence/` |
-| Member 2 | Rules, NLP, pattern classification | `backend/app/detection/`, `backend/app/nlp/` |
-| Member 3 | API orchestration, database, risk, compliance | `backend/app/api/`, `database/`, `risk/`, `compliance/` |
-| Member 4 | DarkShop website, React inspection screen, dashboard | `demo-site/` |
-| Everyone | Tests, documentation, final integration | `tests/`, `docs/`, `README.md` |
+| Controlled website | Pages, fixtures, stable selectors, clean comparison page | `demo-site/` |
+| M1 evidence | Browser navigation, DOM, screenshots, state | `backend/inspection_server.py`, `scripts/` |
+| M2 detection | Rules, text normalization, confidence, pattern classification | `backend/app/detection/`, `backend/app/nlp/` |
+| Integration | Shared evidence contract and M1/M2 merge | `backend/app/integration/` |
+| Backend | Scan lifecycle, API, report assembly | `backend/inspection_server.py`, `backend/app/api/` |
+| Persistence | SQLite schema and report/evidence storage | `backend/app/database/` |
+| Risk | Severity/confidence/completeness scoring | `backend/app/risk/` |
+| Compliance | Technical category, harm, principle, recommendation mapping | `backend/app/compliance/` |
+| UI | Inspection stream, saved dashboard, report download | `demo-site/src/` |
 
 ---
 
-## 4. Prerequisites
+## 4. End-to-end data flow
 
-Install:
+### Step 1 — Controlled website
+
+The DarkShop site contains predictable interface fixtures. Each fixture has a known route, selector, expected state, visible wording, and expected interpretation.
+
+### Step 2 — Browser inspection
+
+Playwright opens the relevant route with Chromium and records:
+
+- Requested and final URL
+- Page title
+- Route
+- Visible text
+- Selector
+- Visibility
+- Enabled/disabled state
+- Checkbox state
+- Bounding box
+- Selected computed styles
+- Full-page screenshot
+- HTML capture
+- Visible-text JSON
+
+### Step 3 — M1 evidence package
+
+The browser observation is stored as a structured finding. For stateful fixtures, the scanner also performs a safe comparison action:
+
+- Basket Sneaking: checked donation → unchecked donation
+- Subscription Trap: subscribe route → cancellation route
+
+The original state and screenshot remain attached to the finding.
+
+### Step 4 — M1/M2 adapter
+
+`backend/app/integration/m1_m2_adapter.py` converts scanner fields into the shared detection shape. It passes evidence text to the M2 engine and attaches the original selector, page, screenshot, and scanner state to every returned classification.
+
+### Step 5 — M2 detection
+
+The current M2 engine uses configured rules and optional NLP compatibility/inference. The active language-level detectors support:
+
+- False Urgency
+- Confirm Shaming
+
+M1/M3-owned structural and price-flow fixtures are still captured and reported even when they do not produce an M2 language finding.
+
+### Step 6 — Risk calculation
+
+For each captured scanner item, the system uses the strongest M2 result when available. Otherwise, it scores the verified M1 evidence using its configured/demo severity. This avoids double-counting one pattern once as M1 and again as M2.
+
+```text
+finding score = severity weight × confidence × evidence completeness
+```
+
+### Step 7 — Compliance mapping
+
+Each finding receives a technical mapping containing:
+
+- Pattern category
+- Choice/privacy principle
+- Description
+- Potential harm
+- Ethical recommendation
+- Verification status
+- Scope/source metadata
+
+This mapping is designed for technical review and does not automatically determine a legal violation.
+
+### Step 8 — Persistence and dashboard
+
+The complete report is written to JSON, normalized records are stored in SQLite, and the dashboard retrieves the saved report through the scan API.
+
+---
+
+## 5. Controlled DarkShop fixtures
+
+| ID | Pattern | Route | Evidence target | Current detection role |
+|---|---|---|---|---|
+| `DP01` | False Urgency | `/product` | `#scarcity-text` and `#offer-timer` | M1 evidence + M2 language |
+| `DP02` | Basket Sneaking | `/checkout` | `#donation` | M1/M3 structural evidence |
+| `DP03` | Confirm Shaming | `/checkout` | `#confirm-shaming` | M2 language |
+| `DP05` | Subscription Trap | `/subscribe` | `data-ccpa-pattern` fixture | M1/M3 flow evidence |
+| `DP06` | Interface Interference | `/interface-interference` | `data-ccpa-pattern` fixture | M1/M3 visual evidence |
+| `DP07` | Bait and Switch | `/bait-switch` | `#bait-switch-status` | M1/M3 flow evidence |
+| `DP08` | Drip Pricing | `/checkout` | `data-ccpa-pattern` fixture | M1/M3 price-flow evidence |
+
+The wider CCPA lab also contains simulated or excluded examples. Those entries are catalogue content and are not all part of the live seven-pattern scanner list.
+
+---
+
+## 6. Installation
+
+### Prerequisites
 
 - Python 3.11 or newer
 - Node.js 18 or newer
 - npm
 - Git
-- Chromium through Playwright
+- Chromium installed through Playwright
 
-Python dependency:
-
-```text
-playwright>=1.40,<2
-```
-
-The project currently does not require a paid API, database server, login, payment, or external website.
-
----
-
-## 5. First-time installation
-
-### 5.1 Clone and enter the repository
+### Clone
 
 ```bash
 git clone https://github.com/Geeta1239/ShadowBait.git
 cd ShadowBait
 ```
 
-### 5.2 Install Python dependencies
-
-Recommended on macOS/Linux:
+### Python environment — macOS/Linux
 
 ```bash
 python3 -m venv .venv
@@ -171,7 +277,7 @@ python -m pip install -r requirements.txt
 python -m playwright install chromium
 ```
 
-Windows PowerShell:
+### Python environment — Windows PowerShell
 
 ```powershell
 py -m venv .venv
@@ -181,14 +287,14 @@ python -m pip install -r requirements.txt
 python -m playwright install chromium
 ```
 
-If PowerShell blocks activation, run the commands from Command Prompt or use:
+If PowerShell activation is unavailable:
 
 ```powershell
 .venv\Scripts\python.exe -m pip install -r requirements.txt
 .venv\Scripts\python.exe -m playwright install chromium
 ```
 
-### 5.3 Install the DarkShop frontend
+### Frontend dependencies
 
 ```bash
 cd demo-site
@@ -198,37 +304,31 @@ cd ..
 
 ---
 
-## 6. Run the complete local demo
+## 7. Run the local system
 
 Use two terminals from the repository root.
 
-### Terminal 1 — DarkShop website
+### Terminal 1 — DarkShop
 
 ```bash
 cd demo-site
 npm run dev -- --port 3000
 ```
 
-Open:
+Useful routes:
 
 ```text
 http://localhost:3000/product
+http://localhost:3000/checkout
+http://localhost:3000/subscribe
 http://localhost:3000/inspect
 http://localhost:3000/clean-page
 ```
 
-### Terminal 2 — inspection and orchestration API
-
-Activate the virtual environment first, then run:
+### Terminal 2 — inspection API
 
 ```bash
 PYTHONPATH=backend python backend/inspection_server.py
-```
-
-The API listens on:
-
-```text
-http://127.0.0.1:5050
 ```
 
 Health check:
@@ -237,92 +337,39 @@ Health check:
 curl http://127.0.0.1:5050/health
 ```
 
-Expected response shape:
-
-```json
-{
-  "ok": true,
-  "target": "http://127.0.0.1:3000",
-  "evidence_root": "evidence",
-  "orchestration_api": true
-}
-```
-
-The Vite development server forwards `/api/*` requests to port `5050` through `demo-site/vite.config.js`.
-
----
-
-## 7. Normal browser demonstration flow
-
-1. Open `http://localhost:3000/product`.
-2. Explain that DarkShop is a controlled test website with intentional fixtures.
-3. Open `http://localhost:3000/inspect`.
-4. Click **START INSPECTION**.
-5. Watch the live event log as routes and selectors are inspected.
-6. Watch screenshots and evidence cards appear.
-7. Wait for the scan to reach `7/7`.
-8. Click **OPEN RESULTS DASHBOARD**.
-9. Review the risk score, severity distribution, screenshots, M2 results, compliance mapping, and recommendations.
-10. Use **DOWNLOAD JSON REPORT** if a machine-readable report is required.
-
-The dashboard URL has this format:
+Optional environment variables:
 
 ```text
-http://localhost:3000/results/<scan_id>
+INSPECTION_API_HOST       API bind address; default 0.0.0.0
+INSPECTION_API_PORT       API port; default 5050
+SHADOWBAIT_TARGET_URL     default scan target; default http://127.0.0.1:3000
+SHADOWBAIT_EVIDENCE_DIR   evidence root; default repository/evidence
+SHADOWBAIT_DB_PATH        SQLite path; default evidence/shadowbait.sqlite3
+SHADOWBAIT_CHROMIUM_PATH  optional explicit Chromium executable
 ```
-
-Example:
-
-```text
-http://localhost:3000/results/live-20261006T085203301009Z
-```
-
-The `scan_id` is different for every scan.
 
 ---
 
-## 8. The seven controlled verified fixtures
-
-| Scanner ID | Pattern | Route | Evidence selector | Current owner |
-|---|---|---|---|---|
-| `DP01` | False Urgency | `/product` | `#scarcity-text` plus timer | M1 evidence + M2 language classification |
-| `DP02` | Basket Sneaking | `/checkout` | `#donation` | M1/M3 structural evidence |
-| `DP03` | Confirm Shaming | `/checkout` | `#confirm-shaming` | M2 language classification |
-| `DP05` | Subscription Trap | `/subscribe` | `[data-ccpa-pattern="SUBSCRIPTION_TRAP"]` | M1/M3 flow evidence |
-| `DP06` | Interface Interference | `/interface-interference` | `[data-ccpa-pattern="INTERFACE_INTERFERENCE"]` | M1/M3 visual evidence |
-| `DP07` | Bait and Switch | `/bait-switch` | `#bait-switch-status` | M1/M3 flow evidence |
-| `DP08` | Drip Pricing | `/checkout` | `[data-ccpa-pattern="DRIP_PRICING"]` | M1/M3 price-flow evidence |
-
-The current M2 language detector specifically supports:
-
-- False Urgency
-- Confirm Shaming
-
-The other verified fixtures are still captured as browser evidence and included in risk/compliance reporting. Their dedicated structural, pricing, or flow detectors are future expansion areas.
-
-Additional CCPA lab entries are simulated or intentionally excluded to make the test scope explicit. They are not part of the seven-pattern live scanner list.
-
----
-
-## 9. Direct scan API
+## 8. API contract
 
 ### Start a scan
 
-```bash
-curl -X POST http://127.0.0.1:5050/api/scans \
-  -H "Content-Type: application/json" \
-  -d '{"url":"http://127.0.0.1:3000"}'
+```text
+POST /api/scans
 ```
 
-You can limit the scan to selected known patterns:
+Request:
 
-```bash
-curl -X POST http://127.0.0.1:5050/api/scans \
-  -H "Content-Type: application/json" \
-  -d '{"url":"http://127.0.0.1:3000","pattern_ids":["DP01","DP02","DP03"]}'
+```json
+{
+  "url": "http://127.0.0.1:3000",
+  "pattern_ids": ["DP01", "DP02", "DP03"]
+}
 ```
 
-The response is asynchronous:
+`pattern_ids` is optional. If omitted, all known live fixtures are scanned.
+
+Response:
 
 ```json
 {
@@ -337,52 +384,48 @@ The response is asynchronous:
 
 ### Read scan status
 
-```bash
-curl http://127.0.0.1:5050/api/scans/<scan_id>
+```text
+GET /api/scans/{scan_id}
 ```
 
-Possible statuses:
+Statuses:
 
 ```text
-QUEUED
-RUNNING
-COMPLETED
-FAILED
+QUEUED → RUNNING → COMPLETED
+                     └→ FAILED
 ```
 
-### List saved scan history
+### Read scan history
 
-```bash
-curl http://127.0.0.1:5050/api/scans
+```text
+GET /api/scans
 ```
 
 ### Read evidence
 
-```bash
-curl http://127.0.0.1:5050/api/scans/<scan_id>/evidence
+```text
+GET /api/scans/{scan_id}/evidence
 ```
 
-### Read classified findings
+### Read findings
 
-```bash
-curl http://127.0.0.1:5050/api/scans/<scan_id>/findings
+```text
+GET /api/scans/{scan_id}/findings
 ```
 
 ### Read the complete report
 
-```bash
-curl http://127.0.0.1:5050/api/scans/<scan_id>/report
+```text
+GET /api/scans/{scan_id}/report
 ```
 
-### Backward-compatible live SSE endpoint
-
-The existing live inspection UI uses:
+### Existing live SSE stream
 
 ```text
 GET /api/inspection/stream?target=<url>
 ```
 
-SSE events include:
+SSE events:
 
 ```text
 started
@@ -393,9 +436,11 @@ complete
 error
 ```
 
+The SSE path remains available for the live inspection screen. The `/api/scans` path is the persistent orchestration path used by the saved-results dashboard.
+
 ---
 
-## 10. Evidence and output locations
+## 9. Evidence and persistence layout
 
 ### Live API scan
 
@@ -415,57 +460,244 @@ evidence/live-scans/live-<UTC-timestamp>/
 └── response.json
 ```
 
-### Standalone scanner
+### SQLite
 
-```text
-evidence/scans/<scan-id>/
-├── screenshots/
-├── dom/
-└── scan.json
-
-evidence/reports/<scan-id>/response.json
-evidence/reports/response.json
-```
-
-Generated scan folders and local databases are ignored by Git. They remain visible in the local VS Code repository after a scan, but they are not committed automatically.
-
-The live API database is normally:
+Default location:
 
 ```text
 evidence/shadowbait.sqlite3
 ```
 
-The database is ignored by Git.
+Tables:
+
+```text
+scans
+├── id
+├── target_url
+├── started_at
+├── finished_at
+├── status
+├── overall_risk
+├── risk_level
+├── pattern_ids_json
+├── report_json
+└── error
+
+evidence
+├── scan_id
+├── pattern_id
+├── route
+├── selector
+├── text
+├── screenshot_path
+└── element_state_json
+
+findings
+├── scan_id
+├── pattern_id
+├── name
+├── severity
+├── confidence
+├── status
+├── detection_source
+├── explanation
+├── recommendation
+├── evidence_json
+└── compliance_json
+```
+
+Local databases and generated scan folders are ignored by Git. They remain available in the local working copy after a scan.
 
 ---
 
-## 11. Standalone scanner
+## 10. Saved-results dashboard
 
-The standalone scanner is useful when you want the Member 1 evidence package without starting the full API.
+After a scan reaches `COMPLETED`, the inspection screen exposes:
 
-Start DarkShop first, then run from the repository root:
+```text
+OPEN RESULTS DASHBOARD
+```
+
+The route is:
+
+```text
+/results/<scan_id>
+```
+
+The dashboard retrieves the saved report and displays:
+
+- Target URL and scan time
+- Overall risk level and numeric risk score
+- Captured finding count
+- M2 classified finding count
+- High/medium/low severity distribution
+- Technical compliance principles
+- Finding screenshots
+- Observed evidence text
+- M2 confidence and detection source
+- Potential harm
+- Ethical recommendation
+- Search filter
+- Severity filter
+- JSON report download
+
+The dashboard uses screenshots embedded in the saved report response, so it can display evidence without exposing a separate static-file server.
+
+---
+
+## 11. Risk scoring model
+
+Implementation:
+
+```text
+backend/app/risk/scoring.py
+```
+
+Severity weights:
+
+```text
+HIGH   = 3.0
+MEDIUM = 2.0
+LOW    = 1.0
+```
+
+Evidence completeness:
+
+```text
+VERIFIED  = 1.0
+CANDIDATE = 0.5
+```
+
+Formula:
+
+```text
+finding score = severity weight × confidence × evidence completeness
+overall score  = sum of finding scores
+```
+
+Risk levels:
+
+```text
+0–2.99  LOW
+3–5.99  MEDIUM
+6+      HIGH
+```
+
+The score is intentionally transparent and deterministic. Future calibration should use expert annotations and measured precision/recall rather than treating the prototype score as a legal or regulatory measurement.
+
+---
+
+## 12. Compliance mapping model
+
+Implementation:
+
+```text
+backend/app/compliance/mapping.py
+```
+
+Each finding receives:
+
+- Category
+- Principle
+- Description
+- Potential harm
+- Recommendation
+- Status
+- Scope metadata
+- Source metadata
+
+The mapping is a technical representation of privacy, consent, transparency, and consumer-choice concerns. It is not an automatic legal conclusion.
+
+---
+
+## 13. Dataset and detection design
+
+### Current ground truth
+
+The current prototype uses a self-authored controlled fixture set embedded in DarkShop. Each fixture provides:
+
+- Pattern ID
+- Route
+- Stable selector
+- Expected visible text
+- Expected interaction state
+- Expected screenshot
+- Human-authored explanation
+- Ethical alternative
+
+This is a reproducible benchmark set for pipeline validation, not a large general-purpose machine-learning dataset.
+
+### Current model behavior
+
+The working DarkShop workflow does not train a neural network. Its primary path is:
+
+```text
+DOM/state evidence
+        ↓
+rule-based detection
+        ↓
+optional NLP compatibility/inference layer
+        ↓
+confidence and evidence-backed result
+```
+
+The M2 rule engine currently supports False Urgency and Confirm Shaming language. Other fixtures remain available as M1/M3 evidence for structural, visual, pricing, or journey-specific detectors.
+
+### Verification rule
+
+A result should only be marked `VERIFIED` when it has sufficient evidence, including the relevant text/state, selector, page, and screenshot. Otherwise it remains a candidate or scope-specific observation.
+
+### Future dataset format
+
+A future annotated dataset should contain:
+
+```text
+screenshot
+HTML/DOM
+visible text
+user journey
+pattern label
+severity
+selector/bounding box
+annotator explanation
+ethical alternative
+```
+
+Evaluation should measure precision, recall, F1, false-positive rate, and inter-annotator agreement.
+
+---
+
+## 14. Standalone scanner
+
+The standalone Member 1 scanner can run without the scan API:
 
 ```bash
 SHADOWBAIT_URL=http://127.0.0.1:3000 \
 python scripts/member1_inspection.py
 ```
 
-Useful environment variables:
+Environment variables:
 
 ```text
-SHADOWBAIT_URL                 Target website URL
-SHADOWBAIT_SCAN_ID             Stable custom scan ID
-SHADOWBAIT_EVIDENCE_DIR        Custom evidence root
-SHADOWBAIT_CHROMIUM_PATH       Optional explicit Chromium executable
+SHADOWBAIT_URL
+SHADOWBAIT_SCAN_ID
+SHADOWBAIT_EVIDENCE_DIR
+SHADOWBAIT_CHROMIUM_PATH
 ```
 
-The scanner uses Playwright’s installed Chromium by default. Do not use old hard-coded paths from another machine.
+The standalone scanner writes:
+
+```text
+evidence/scans/<scan-id>/
+evidence/reports/<scan-id>/response.json
+evidence/reports/response.json
+```
 
 ---
 
-## 12. Automated evidence verification
+## 15. Automated evidence verification
 
-To run a fresh standalone scan and verify its artifacts:
+Run a fresh standalone scan and verify its artifacts:
 
 ```bash
 python scripts/verify_scan_outputs.py \
@@ -473,52 +705,42 @@ python scripts/verify_scan_outputs.py \
   --url http://127.0.0.1:3000
 ```
 
-To verify the newest existing standalone scan:
+Verify the newest existing scan:
 
 ```bash
 python scripts/verify_scan_outputs.py
 ```
 
-To verify a specific scan:
+Verify a specific scan:
 
 ```bash
 python scripts/verify_scan_outputs.py \
   --scan-dir evidence/scans/SCAN-20261005T120000Z
 ```
 
-The verifier checks:
-
-- `scan.json`
-- `response.json`
-- PNG screenshots
-- DOM files
-- referenced evidence paths
-- summary counts
-- JSON validity
-
-A successful run prints:
-
-```text
-PASS: scan output is complete
-```
+The verifier checks JSON validity, screenshots, DOM files, referenced paths, summary counts, and required report fields.
 
 ---
 
-## 13. Clean-page false-positive test
+## 16. Clean-page false-positive test
 
-The clean comparison page is intentionally transparent and should produce no dark-pattern finding.
+The clean page is a transparent comparison fixture at:
 
-Run the integration check while the demo website is active:
+```text
+http://127.0.0.1:3000/clean-page
+```
+
+Run:
 
 ```bash
 SHADOWBAIT_URL=http://127.0.0.1:3000 \
 python scripts/clean_page_check.py
 ```
 
-The test validates both layers:
+The test checks:
 
-1. Forbidden dark-pattern selectors are absent from `/clean-page`.
-2. The production M2 rule engine returns zero findings for the page’s visible text.
+1. Forbidden dark-pattern selectors are absent.
+2. The production M2 rule engine returns zero findings for the clean page text.
 
 Expected result:
 
@@ -533,15 +755,13 @@ Expected result:
 }
 ```
 
-This is a baseline accuracy check, not proof of universal accuracy on all websites.
+This is a controlled baseline regression test. It does not establish accuracy across all websites.
 
 ---
 
-## 14. Test and build commands
+## 17. Validation commands
 
 ### Backend tests
-
-From the repository root:
 
 ```bash
 python -m pytest -q tests/backend
@@ -564,7 +784,7 @@ python -m py_compile \
   backend/app/compliance/mapping.py
 ```
 
-### Frontend production build
+### Frontend build
 
 ```bash
 cd demo-site
@@ -572,185 +792,28 @@ npm run build
 cd ..
 ```
 
-### Dashboard browser smoke test
+### Full local baseline sequence
 
-After completing a scan, open:
+```bash
+# Terminal 1
+cd demo-site
+npm run dev -- --port 3000
 
-```text
-http://localhost:3000/results/<scan_id>
+# Terminal 2, repository root
+PYTHONPATH=backend python backend/inspection_server.py
+
+# Terminal 3, repository root
+python -m pytest -q tests/backend
+SHADOWBAIT_URL=http://127.0.0.1:3000 python scripts/clean_page_check.py
 ```
 
-Confirm that the page shows:
-
-- `Inspection results dashboard`
-- overall risk level
-- risk score
-- at least one screenshot
-- finding name
-- compliance recommendation
+Then run the browser inspection from `/inspect` and open the saved dashboard after completion.
 
 ---
 
-## 15. Risk scoring
+## 18. Troubleshooting
 
-The scoring implementation is in:
-
-```text
-backend/app/risk/scoring.py
-```
-
-The prototype uses:
-
-```text
-finding score = severity weight × confidence × evidence completeness
-```
-
-Weights:
-
-```text
-HIGH   = 3
-MEDIUM = 2
-LOW    = 1
-```
-
-Evidence completeness:
-
-```text
-VERIFIED  = 1.0
-CANDIDATE = 0.5
-```
-
-Risk-level thresholds:
-
-```text
-0–2.99  LOW
-3–5.99  MEDIUM
-6+      HIGH
-```
-
-The complete report includes:
-
-```json
-{
-  "risk": {
-    "risk_score": 16.8,
-    "risk_level": "HIGH",
-    "verified_findings": 7,
-    "candidate_findings": 0,
-    "high_severity_findings": 3,
-    "medium_severity_findings": 4,
-    "low_severity_findings": 0,
-    "scored_findings": []
-  }
-}
-```
-
-The score is explainable prototype logic. It should be calibrated with expert annotations and real interface data before being treated as a production compliance metric.
-
----
-
-## 16. Compliance mapping
-
-The mapping implementation is in:
-
-```text
-backend/app/compliance/mapping.py
-```
-
-Each captured finding receives:
-
-- Pattern category
-- Choice/privacy principle
-- Description
-- Potential user harm
-- Ethical recommendation
-- Verification status
-- Technical-review scope
-- Source label
-
-The report intentionally states:
-
-```text
-technical mapping for human review; not a legal determination
-```
-
-This distinction must be preserved in presentations and judge discussions.
-
----
-
-## 17. Dataset and model explanation
-
-### What dataset does the current prototype use?
-
-The current prototype uses a **self-authored controlled ground-truth fixture set** embedded in DarkShop. Each fixture has:
-
-- Known pattern ID
-- Known route
-- Stable selector
-- Expected visible text
-- Expected state
-- Expected screenshot
-- Human-authored explanation
-- Ethical alternative
-
-This is a benchmark/validation fixture set, not a large production training dataset.
-
-### Is a neural network being trained?
-
-No neural network is trained by the current DarkShop demo workflow.
-
-The current working detection path is:
-
-```text
-DOM/state evidence from M1
-        ↓
-rule-based M2 detectors for supported language patterns
-        ↓
-optional NLP compatibility/inference layer
-        ↓
-confidence and evidence-backed finding
-```
-
-Future ML work would require a real annotated interface dataset containing screenshots, DOM, text, user journeys, pattern labels, severity, evidence selectors, and expert explanations.
-
-### How is a checkbox distinguished from a dark pattern?
-
-The system does not label every checkbox as a dark pattern. It checks evidence such as:
-
-```text
-Is the checkbox visible?
-Is it optional?
-Is it preselected?
-Does it add an extra charge or consent action?
-Is the selector and page recorded?
-Is a screenshot available?
-```
-
-A verified result requires evidence. The clean-page test provides a baseline against false positives.
-
----
-
-## 18. Judge-facing limitations
-
-State these limitations honestly:
-
-1. DarkShop is a controlled validation website, not a random real-world site.
-2. The scanner currently uses a controlled list of known fixtures and selectors.
-3. M2 currently classifies supported language patterns rather than every pattern type.
-4. The risk score is explainable prototype logic, not a legal or regulatory score.
-5. The compliance mapping supports human review; it does not declare a legal violation.
-6. The current ground truth is self-authored and should be expanded with expert annotations.
-7. A browser extension, generic crawler, public-site benchmark, and PDF report are future enhancements.
-
-A strong response to “What is this useful for if it is not fully generic yet?” is:
-
-> **The controlled site gives us repeatable ground truth, reliable evidence capture, and measurable regression tests. It lets us validate the complete pipeline before introducing the complexity and safety risks of arbitrary public websites. The same pipeline is designed to accept generic DOM and journey evidence in the next phase.**
-
----
-
-## 19. Troubleshooting
-
-### The website does not open
+### DarkShop does not open
 
 ```bash
 cd demo-site
@@ -758,51 +821,33 @@ npm install
 npm run dev -- --port 3000
 ```
 
-Check:
-
-```text
-http://127.0.0.1:3000/product
-```
-
-### The API cannot be reached
-
-Start it from the repository root:
+### API does not respond
 
 ```bash
 PYTHONPATH=backend python backend/inspection_server.py
-```
-
-Check:
-
-```bash
 curl http://127.0.0.1:5050/health
 ```
 
-### Playwright cannot find Chromium
+### Chromium is missing
 
 ```bash
 python -m playwright install chromium
 ```
 
-If a specific browser must be used:
+### A custom Chromium executable is required
 
 ```bash
 SHADOWBAIT_CHROMIUM_PATH=/path/to/chromium \
 PYTHONPATH=backend python backend/inspection_server.py
 ```
 
-### The dashboard says the scan was not found
+### Dashboard cannot find a scan
 
-Check that:
-
-1. The API process is still running.
-2. The `scan_id` is copied exactly.
-3. The scan was created by the same API database.
-4. The database path was not changed between scan and dashboard load.
+Check that the API process is running, the scan ID is exact, and the database path has not changed between scan creation and dashboard loading.
 
 ### Screenshots are not visible in VS Code
 
-Run a fresh scan and inspect:
+Inspect:
 
 ```text
 evidence/live-scans/<scan_id>/screenshots/
@@ -810,63 +855,50 @@ evidence/live-scans/<scan_id>/report.json
 evidence/live-scans/<scan_id>/response.json
 ```
 
-The generated folders are ignored by Git intentionally, but they should exist locally.
+Generated folders are ignored by Git intentionally but remain in the local working tree.
 
-### The clean-page test fails
+### Clean-page test fails
 
-Run it with the correct target:
-
-```bash
-SHADOWBAIT_URL=http://127.0.0.1:3000 \
-python scripts/clean_page_check.py
-```
-
-If it reports a selector or M2 finding, inspect the output before changing the detector. A false-positive regression should be investigated, not hidden.
+Do not hide the failure by weakening the rule. Inspect the reported selector or M2 result and decide whether the detector or the fixture is incorrect.
 
 ---
 
-## 20. Safe development rules
+## 19. Technical limitations and next development areas
 
-- Do not add real payment processing.
-- Do not create malware or malicious downloads.
-- Do not present technical mappings as legal conclusions.
-- Do not claim a model was trained when it was not.
-- Do not commit generated scan databases or local evidence runs.
-- Keep screenshots, selectors, and text attached to every verified finding.
-- Keep the clean-page baseline test passing.
-- Run backend tests and the frontend build before pushing.
-- Use a separate branch for substantial future work.
+Current limitations:
 
----
+- Scanner routes/selectors are controlled rather than discovered generically.
+- M2 language detection covers a limited set of supported patterns.
+- Risk weights are prototype defaults and require calibration.
+- Compliance mapping is technical and requires human review.
+- The dataset is self-authored and controlled.
+- The dashboard currently downloads JSON rather than a formatted PDF.
 
-## 21. Recommended next enhancements
+Planned expansion areas:
 
-The current foundation is ready for the next research/product phase:
-
-1. Generic DOM element discovery beyond fixed fixtures.
-2. User-journey crawling across links and forms.
-3. Screenshot bounding boxes and evidence annotations.
-4. Multi-page clean benchmarks and expert annotation workflow.
-5. Precision, recall, F1, and inter-annotator agreement reporting.
-6. PDF audit report generation.
-7. Browser extension for real-time page overlays.
-8. Scan comparison and CI/CD risk thresholds.
-9. Expanded M2 detectors for structural, pricing, and subscription patterns.
-10. A real annotated dataset for future ML training.
+1. Generic DOM element discovery.
+2. Link/form/user-journey crawling.
+3. Screenshot bounding boxes and visual annotations.
+4. Expanded structural, pricing, and subscription detectors.
+5. Multiple clean benchmark websites.
+6. Expert annotation and evaluation metrics.
+7. Browser-extension inspection overlay.
+8. PDF report generation.
+9. Scan comparison and CI/CD thresholds.
+10. Larger annotated dataset for future ML training.
 
 ---
 
-## 22. Project documentation
+## 20. Related documentation
 
-- `docs/judge-guide/ShadowBait_Judge_Ready_Prototype_Guide.md` — judge-facing architecture and dataset/model explanation.
-- `docs/judge-guide/ShadowBait_File_to_File_Data_Flow.md` — source-file-to-source-file data flow.
-- `docs/team/Complete_Team_Serial_Workflow.md` — detailed seven-step team workflow.
+- `docs/team/Complete_Team_Serial_Workflow.md` — detailed serial implementation workflow.
 - `docs/team/Member_1_Working_Flow.md` — scanner and evidence workflow.
-- `docs/team/Project_Contract_Freeze_Checklist.md` — shared contract and checkpoint rules.
-- `evidence/README.md` — exact runtime artifact layout and output verifier usage.
+- `docs/team/Project_Contract_Freeze_Checklist.md` — shared contracts and checkpoints.
+- `evidence/README.md` — evidence layout and artifact verifier instructions.
+- `docs/architecture/` — architecture diagram sources and rendered diagrams.
 
 ---
 
-## License and research note
+## Safety and research note
 
-This repository is a research and demonstration prototype for ethical UX and dark-pattern inspection. Review all findings with a qualified human reviewer before making a legal, regulatory, or business decision.
+ShadowBait is a research and demonstration prototype. It does not process real payments, require user authentication, create malware, or make automatic legal determinations. Findings should be reviewed by an appropriate human before being used for legal, compliance, product, or business decisions.
