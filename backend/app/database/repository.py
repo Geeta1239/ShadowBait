@@ -60,12 +60,16 @@ class ScanDatabase:
                     detection_source TEXT,
                     explanation TEXT,
                     recommendation TEXT,
-                    evidence_json TEXT NOT NULL DEFAULT '{}'
+                    evidence_json TEXT NOT NULL DEFAULT '{}',
+                    compliance_json TEXT NOT NULL DEFAULT '{}'
                 );
                 CREATE INDEX IF NOT EXISTS idx_evidence_scan_id ON evidence(scan_id);
                 CREATE INDEX IF NOT EXISTS idx_findings_scan_id ON findings(scan_id);
                 """
             )
+            columns = {row["name"] for row in db.execute("PRAGMA table_info(findings)").fetchall()}
+            if "compliance_json" not in columns:
+                db.execute("ALTER TABLE findings ADD COLUMN compliance_json TEXT NOT NULL DEFAULT '{}' ")
 
     def create_scan(self, scan_id: str, target_url: str, pattern_ids: list[str], status: str = "QUEUED") -> None:
         now = datetime.now(timezone.utc).isoformat()
@@ -128,8 +132,8 @@ class ScanDatabase:
                     db.execute(
                         """INSERT INTO findings
                            (scan_id, pattern_id, name, severity, confidence, status,
-                            detection_source, explanation, recommendation, evidence_json)
-                           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                            detection_source, explanation, recommendation, evidence_json, compliance_json)
+                           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                         (
                             scan_id,
                             finding.get("rule_id", finding.get("pattern", "")),
@@ -141,6 +145,7 @@ class ScanDatabase:
                             finding.get("explanation"),
                             finding.get("recommendation"),
                             json.dumps(finding.get("evidence", {}), ensure_ascii=False),
+                            json.dumps(item.get("compliance", {}), ensure_ascii=False),
                         ),
                     )
 

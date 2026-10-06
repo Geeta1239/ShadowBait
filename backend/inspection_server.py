@@ -17,6 +17,7 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO_ROOT / "backend"))
 
 from app.api.scan_orchestrator import ScanStore, validate_scan_request  # noqa: E402
+from app.compliance.mapping import attach_compliance, summarize_compliance  # noqa: E402
 from app.database.repository import ScanDatabase  # noqa: E402
 from app.integration.m1_m2_adapter import classify_m1_finding  # noqa: E402
 from app.risk.scoring import calculate_risk  # noqa: E402
@@ -283,6 +284,7 @@ class Handler(BaseHTTPRequestHandler):
                 m2_findings = classify_m1_finding(result)
                 result["m2_status"] = "CLASSIFIED" if m2_findings else "NOT_IN_M2_SCOPE"
                 result["m2_findings"] = m2_findings
+                result = attach_compliance(result)
                 captured.append(result)
                 if emit:
                     emit("finding", {"completed": index + 1, "total": len(selected_findings), "finding": result, "message": f"Captured {finding['id']} screenshot and saved evidence."})
@@ -294,6 +296,9 @@ class Handler(BaseHTTPRequestHandler):
         report = {"scan": {**scan_meta, "finished_at": finished_at}, "findings": captured, "summary": {"verified_findings": len(captured), "pages_scanned": len(set(item["route"] for item in captured)), "m2_classified_findings": len(all_m2), "m2_verified_findings": sum(1 for item in all_m2 if item.get("status") == "VERIFIED"), "m2_detection_sources": {source: sum(1 for item in all_m2 if item.get("detection_source") == source) for source in sorted({item.get("detection_source") for item in all_m2})}}}
         report["risk"] = calculate_risk(report)
         report["summary"].update({key: value for key, value in report["risk"].items() if key != "scored_findings"})
+        report["compliance"] = summarize_compliance(captured)
+        report["summary"]["compliance_mapped_findings"] = report["compliance"]["mapped_findings"]
+        report["summary"]["compliance_verified_mappings"] = report["compliance"]["verified_mappings"]
         scan_path = out_dir / "scan.json"
         report_path = out_dir / "report.json"
         response_path = out_dir / "response.json"
