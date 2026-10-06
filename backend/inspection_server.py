@@ -10,6 +10,7 @@ from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
 from playwright.sync_api import sync_playwright
+from app.integration.m1_m2_adapter import classify_m1_finding
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -158,18 +159,23 @@ class Handler(BaseHTTPRequestHandler):
                     result["after_screenshot"] = data_url(related)
                     result["after_screenshot_file"] = repo_path(related_path)
                     result["state_transition"] = "/subscribe → /cancel"
+                m2_findings = classify_m1_finding(result)
+                result["m2_status"] = "CLASSIFIED" if m2_findings else "NOT_IN_M2_SCOPE"
+                result["m2_findings"] = m2_findings
                 captured.append(result)
                 sse(self, "finding", {"completed": index + 1, "total": len(FINDINGS), "finding": result, "message": f"Captured {finding['id']} screenshot and saved evidence."})
+                sse(self, "classification", {"completed": index + 1, "total": len(FINDINGS), "pattern_id": finding["id"], "status": result["m2_status"], "findings": m2_findings, "message": f"M2 classification {result['m2_status'].lower()} for {finding['id']}."})
             context.close()
             browser.close()
         finished_at = datetime.now(timezone.utc).isoformat()
-        report = {"scan": {**scan_meta, "finished_at": finished_at}, "findings": captured, "summary": {"verified_findings": len(captured), "pages_scanned": len(set(item["route"] for item in captured))}}
+        all_m2 = [item for finding in captured for item in finding.get("m2_findings", [])]
+        report = {"scan": {**scan_meta, "finished_at": finished_at}, "findings": captured, "summary": {"verified_findings": len(captured), "pages_scanned": len(set(item["route"] for item in captured)), "m2_classified_findings": len(all_m2), "m2_verified_findings": sum(1 for item in all_m2 if item.get("status") == "VERIFIED"), "m2_detection_sources": {source: sum(1 for item in all_m2 if item.get("detection_source") == source) for source in sorted({item.get("detection_source") for item in all_m2})}}}
         scan_path = out_dir / "scan.json"
         report_path = out_dir / "report.json"
         response_path = out_dir / "response.json"
         for path in (scan_path, report_path, response_path):
             write_json(path, report)
-        sse(self, "complete", {"scan_id": scan_id, "completed": len(captured), "total": len(FINDINGS), "findings": captured, "scan_file": repo_path(scan_path), "report_file": repo_path(report_path), "response_file": repo_path(response_path), "finished_at": finished_at, "message": "Inspection complete — live evidence package ready and saved."})
+        sse(self, "complete", {"scan_id": scan_id, "completed": len(captured), "total": len(FINDINGS), "findings": captured, "summary": report["summary"], "scan_file": repo_path(scan_path), "report_file": repo_path(report_path), "response_file": repo_path(response_path), "finished_at": finished_at, "message": "Inspection complete — live evidence and M2 classifications ready and saved."})
 
 
 if __name__ == "__main__":
