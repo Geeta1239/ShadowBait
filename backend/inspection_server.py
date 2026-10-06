@@ -17,6 +17,7 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO_ROOT / "backend"))
 
 from app.api.scan_orchestrator import ScanStore, validate_scan_request  # noqa: E402
+from app.database.repository import ScanDatabase  # noqa: E402
 from app.integration.m1_m2_adapter import classify_m1_finding  # noqa: E402
 
 
@@ -27,6 +28,7 @@ EVIDENCE_ROOT = Path(os.environ.get("SHADOWBAIT_EVIDENCE_DIR", str(REPO_ROOT / "
 LIVE_ROOT = EVIDENCE_ROOT / "live-scans"
 LIVE_ROOT.mkdir(parents=True, exist_ok=True)
 STORE = ScanStore()
+DATABASE = ScanDatabase(os.environ.get("SHADOWBAIT_DB_PATH", str(EVIDENCE_ROOT / "shadowbait.sqlite3")))
 
 FINDINGS = [
     {"id": "DP01", "name": "False Urgency", "route": "/product", "selector": "#scarcity-text", "related": "#offer-timer", "evidence": "“ONLY 2 LEFT!” appears beside a countdown timer.", "why": "Captured to prove scarcity text and a time-pressure signal are visible together.", "harm": "Pressures customers to buy before comparing options or verifying the claim.", "ethical": "Show truthful stock and a fixed, clearly stated offer end time."},
@@ -146,6 +148,7 @@ class Handler(BaseHTTPRequestHandler):
 
         scan_id = "live-" + datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%fZ")
         record = STORE.create(scan_id, target, pattern_ids)
+        DATABASE.create_scan(scan_id, target, pattern_ids)
         Thread(target=self._run_background_scan, args=(scan_id, target, pattern_ids), daemon=True).start()
         self._json(202, {"scan_id": scan_id, "status": record.status, "target": target, "pattern_ids": pattern_ids, "status_url": f"/api/scans/{scan_id}", "report_url": f"/api/scans/{scan_id}/report"})
 
@@ -154,6 +157,7 @@ class Handler(BaseHTTPRequestHandler):
             self.run_scan(target, scan_id=scan_id, pattern_ids=pattern_ids)
         except Exception as exc:
             STORE.update(scan_id, status="FAILED", error=str(exc), finished_at=datetime.now(timezone.utc).isoformat())
+            DATABASE.update_scan(scan_id, status="FAILED", error=str(exc), finished_at=datetime.now(timezone.utc).isoformat())
             print(f"[inspection-api] scan {scan_id} failed: {exc}", flush=True)
 
     def do_GET(self) -> None:
@@ -162,7 +166,7 @@ class Handler(BaseHTTPRequestHandler):
             self._json(200, {"ok": True, "target": DEFAULT_TARGET, "evidence_root": repo_path(EVIDENCE_ROOT), "orchestration_api": True})
             return
         if parsed.path == "/api/scans":
-            self._json(200, {"scans": [record.summary() for record in STORE.list()]})
+            self._json(200, {"scans": DATABASE.list_scans()})
             return
         if parsed.path.startswith("/api/scans/"):
             self._get_scan_resource(parsed.path)
@@ -195,7 +199,11 @@ class Handler(BaseHTTPRequestHandler):
         scan_id = parts[2]
         record = record_or_disk(scan_id)
         if record is None:
-            self._json(404, {"error": "scan not found", "scan_id": scan_id})
+            database_scan = DATABASE.get_scan(scan_id)
+            if database_scan is None:
+                self._json(404, {"error": "scan not found", "scan_id": scan_id})
+                return
+            self._json(200, database_scan)
             return
         resource = parts[3] if len(parts) == 4 else None
         if resource is None:
@@ -215,6 +223,9 @@ class Handler(BaseHTTPRequestHandler):
         scan_id = scan_id or "live-" + datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%fZ")
         pattern_ids = pattern_ids or list(FINDING_BY_ID)
         selected_findings = [FINDING_BY_ID[item] for item in pattern_ids]
+        if STORE.get(scan_id) is None:
+            STORE.create(scan_id, target, pattern_ids)
+            DATABASE.create_scan(scan_id, target, pattern_ids)
         out_dir = LIVE_ROOT / scan_id
         screenshots_dir = out_dir / "screenshots"
         dom_dir = out_dir / "dom"
@@ -224,6 +235,7 @@ class Handler(BaseHTTPRequestHandler):
         scan_meta = {"scan_id": scan_id, "target": target, "browser": "Chromium", "viewport": {"width": 1440, "height": 1000}, "started_at": started_at, "output_root": repo_path(out_dir), "pattern_ids": pattern_ids}
         if STORE.get(scan_id):
             STORE.update(scan_id, status="RUNNING", started_at=started_at)
+        DATABASE.update_scan(scan_id, status="RUNNING", started_at=started_at)
         if emit:
             emit("started", {**scan_meta, "total": len(selected_findings), "message": "Chromium browser started with a fresh context."})
         captured = []
@@ -286,6 +298,7 @@ class Handler(BaseHTTPRequestHandler):
             write_json(path, report)
         if STORE.get(scan_id):
             STORE.update(scan_id, status="COMPLETED", finished_at=finished_at, report=report)
+        DATABASE.save_report(report)
         if emit:
             emit("complete", {"scan_id": scan_id, "completed": len(captured), "total": len(selected_findings), "findings": captured, "summary": report["summary"], "scan_file": repo_path(scan_path), "report_file": repo_path(report_path), "response_file": repo_path(response_path), "finished_at": finished_at, "message": "Inspection complete — live evidence and M2 classifications ready and saved."})
         return report
