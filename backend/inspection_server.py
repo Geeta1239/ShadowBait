@@ -4,22 +4,29 @@ import base64
 import json
 import os
 import re
+import sys
 from datetime import datetime, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+from threading import Thread
 from urllib.parse import parse_qs, urlparse
 
 from playwright.sync_api import sync_playwright
-from app.integration.m1_m2_adapter import classify_m1_finding
-
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(REPO_ROOT / "backend"))
+
+from app.api.scan_orchestrator import ScanStore, validate_scan_request  # noqa: E402
+from app.integration.m1_m2_adapter import classify_m1_finding  # noqa: E402
+
+
 HOST = os.environ.get("INSPECTION_API_HOST", "0.0.0.0")
 PORT = int(os.environ.get("INSPECTION_API_PORT", "5050"))
 DEFAULT_TARGET = os.environ.get("SHADOWBAIT_TARGET_URL", "http://127.0.0.1:3000").rstrip("/")
 EVIDENCE_ROOT = Path(os.environ.get("SHADOWBAIT_EVIDENCE_DIR", str(REPO_ROOT / "evidence"))).resolve()
 LIVE_ROOT = EVIDENCE_ROOT / "live-scans"
 LIVE_ROOT.mkdir(parents=True, exist_ok=True)
+STORE = ScanStore()
 
 FINDINGS = [
     {"id": "DP01", "name": "False Urgency", "route": "/product", "selector": "#scarcity-text", "related": "#offer-timer", "evidence": "“ONLY 2 LEFT!” appears beside a countdown timer.", "why": "Captured to prove scarcity text and a time-pressure signal are visible together.", "harm": "Pressures customers to buy before comparing options or verifying the claim.", "ethical": "Show truthful stock and a fixed, clearly stated offer end time."},
@@ -30,6 +37,7 @@ FINDINGS = [
     {"id": "DP07", "name": "Bait and Switch", "route": "/bait-switch", "selector": "#bait-switch-status", "evidence": "₹799 selection becomes an unavailable ₹1,999 upgrade at the final step.", "why": "Captured to preserve both the selected offer and the changed final outcome.", "harm": "Wastes time and redirects purchase intent toward a more expensive item.", "ethical": "Keep the advertised outcome available or disclose changes immediately."},
     {"id": "DP08", "name": "Drip Pricing", "route": "/checkout", "selector": '[data-ccpa-pattern="DRIP_PRICING"]', "evidence": "Delivery, platform, and handling fees appear in the later checkout summary.", "why": "Captured to show the product price beside the later fee breakdown and total.", "harm": "Delays accurate price comparison until late in the journey.", "ethical": "Show the complete payable estimate beside the product price."},
 ]
+FINDING_BY_ID = {item["id"]: item for item in FINDINGS}
 
 
 def sse(handler: BaseHTTPRequestHandler, event: str, payload: dict) -> None:
@@ -66,27 +74,98 @@ def launch_browser(playwright):
     return playwright.chromium.launch(**options)
 
 
+def load_report(scan_id: str) -> dict | None:
+    path = LIVE_ROOT / scan_id / "report.json"
+    if not path.is_file():
+        return None
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError:
+        return None
+
+
+def record_or_disk(scan_id: str):
+    record = STORE.get(scan_id)
+    if record:
+        return record
+    report = load_report(scan_id)
+    if not report:
+        return None
+    scan = report.get("scan", {})
+    record = STORE.create(scan_id, scan.get("target", ""), [f.get("id") for f in FINDINGS])
+    STORE.update(scan_id, status="COMPLETED", started_at=scan.get("started_at"), finished_at=scan.get("finished_at"), report=report)
+    return STORE.get(scan_id)
+
+
 class Handler(BaseHTTPRequestHandler):
     def log_message(self, fmt: str, *args) -> None:
         print("[inspection-api] " + fmt % args, flush=True)
 
+    def _headers(self, content_type: str = "application/json") -> None:
+        self.send_header("Content-Type", content_type)
+        self.send_header("Access-Control-Allow-Origin", "*")
+        self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+        self.send_header("Access-Control-Allow-Headers", "Content-Type")
+
+    def _json(self, status: int, payload: dict) -> None:
+        body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
+        self.send_response(status)
+        self._headers()
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+
+    def _read_json(self) -> dict:
+        length = int(self.headers.get("Content-Length", "0"))
+        if length <= 0 or length > 1_000_000:
+            raise ValueError("request body must be a non-empty JSON object")
+        try:
+            payload = json.loads(self.rfile.read(length).decode("utf-8"))
+        except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+            raise ValueError("request body must contain valid JSON") from exc
+        if not isinstance(payload, dict):
+            raise ValueError("request body must be a JSON object")
+        return payload
+
     def do_OPTIONS(self) -> None:
         self.send_response(204)
-        self.send_header("Access-Control-Allow-Origin", "*")
-        self.send_header("Access-Control-Allow-Methods", "GET, OPTIONS")
-        self.send_header("Access-Control-Allow-Headers", "Content-Type")
+        self._headers()
         self.end_headers()
+
+    def do_POST(self) -> None:
+        parsed = urlparse(self.path)
+        if parsed.path != "/api/scans":
+            self.send_error(404)
+            return
+        try:
+            payload = self._read_json()
+            target, pattern_ids = validate_scan_request(payload, set(FINDING_BY_ID))
+        except ValueError as exc:
+            self._json(400, {"error": str(exc)})
+            return
+
+        scan_id = "live-" + datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%fZ")
+        record = STORE.create(scan_id, target, pattern_ids)
+        Thread(target=self._run_background_scan, args=(scan_id, target, pattern_ids), daemon=True).start()
+        self._json(202, {"scan_id": scan_id, "status": record.status, "target": target, "pattern_ids": pattern_ids, "status_url": f"/api/scans/{scan_id}", "report_url": f"/api/scans/{scan_id}/report"})
+
+    def _run_background_scan(self, scan_id: str, target: str, pattern_ids: list[str]) -> None:
+        try:
+            self.run_scan(target, scan_id=scan_id, pattern_ids=pattern_ids)
+        except Exception as exc:
+            STORE.update(scan_id, status="FAILED", error=str(exc), finished_at=datetime.now(timezone.utc).isoformat())
+            print(f"[inspection-api] scan {scan_id} failed: {exc}", flush=True)
 
     def do_GET(self) -> None:
         parsed = urlparse(self.path)
         if parsed.path == "/health":
-            body = json.dumps({"ok": True, "target": DEFAULT_TARGET, "evidence_root": repo_path(EVIDENCE_ROOT)}).encode()
-            self.send_response(200)
-            self.send_header("Content-Type", "application/json")
-            self.send_header("Access-Control-Allow-Origin", "*")
-            self.send_header("Content-Length", str(len(body)))
-            self.end_headers()
-            self.wfile.write(body)
+            self._json(200, {"ok": True, "target": DEFAULT_TARGET, "evidence_root": repo_path(EVIDENCE_ROOT), "orchestration_api": True})
+            return
+        if parsed.path == "/api/scans":
+            self._json(200, {"scans": [record.summary() for record in STORE.list()]})
+            return
+        if parsed.path.startswith("/api/scans/"):
+            self._get_scan_resource(parsed.path)
             return
         if parsed.path != "/api/inspection/stream":
             self.send_error(404)
@@ -94,13 +173,12 @@ class Handler(BaseHTTPRequestHandler):
         query = parse_qs(parsed.query)
         target = query.get("target", [DEFAULT_TARGET])[0].rstrip("/")
         self.send_response(200)
-        self.send_header("Content-Type", "text/event-stream; charset=utf-8")
+        self._headers("text/event-stream; charset=utf-8")
         self.send_header("Cache-Control", "no-cache")
         self.send_header("Connection", "keep-alive")
-        self.send_header("Access-Control-Allow-Origin", "*")
         self.end_headers()
         try:
-            self.run_scan(target)
+            self.run_scan(target, emit=lambda event, payload: sse(self, event, payload))
             self.close_connection = True
         except Exception as exc:
             try:
@@ -109,23 +187,53 @@ class Handler(BaseHTTPRequestHandler):
             except BrokenPipeError:
                 pass
 
-    def run_scan(self, target: str) -> None:
-        scan_id = "live-" + datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    def _get_scan_resource(self, path: str) -> None:
+        parts = path.strip("/").split("/")
+        if len(parts) not in {3, 4} or parts[0:2] != ["api", "scans"]:
+            self.send_error(404)
+            return
+        scan_id = parts[2]
+        record = record_or_disk(scan_id)
+        if record is None:
+            self._json(404, {"error": "scan not found", "scan_id": scan_id})
+            return
+        resource = parts[3] if len(parts) == 4 else None
+        if resource is None:
+            self._json(200, record.summary())
+        elif resource == "report":
+            self._json(200, record.report or {})
+        elif resource == "findings":
+            report = record.report or {}
+            self._json(200, {"scan_id": scan_id, "status": record.status, "findings": report.get("findings", [])})
+        elif resource == "evidence":
+            report = record.report or {}
+            self._json(200, {"scan_id": scan_id, "status": record.status, "evidence": [{"pattern_id": item.get("id"), "route": item.get("route"), "selector": item.get("selector"), "screenshot": item.get("screenshot_file"), "dom_html": item.get("dom_html_file"), "dom_text": item.get("dom_text_file")} for item in report.get("findings", [])]})
+        else:
+            self.send_error(404)
+
+    def run_scan(self, target: str, emit=None, scan_id: str | None = None, pattern_ids: list[str] | None = None) -> dict:
+        scan_id = scan_id or "live-" + datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%fZ")
+        pattern_ids = pattern_ids or list(FINDING_BY_ID)
+        selected_findings = [FINDING_BY_ID[item] for item in pattern_ids]
         out_dir = LIVE_ROOT / scan_id
         screenshots_dir = out_dir / "screenshots"
         dom_dir = out_dir / "dom"
         screenshots_dir.mkdir(parents=True, exist_ok=True)
         dom_dir.mkdir(parents=True, exist_ok=True)
         started_at = datetime.now(timezone.utc).isoformat()
-        scan_meta = {"scan_id": scan_id, "target": target, "browser": "Chromium", "viewport": {"width": 1440, "height": 1000}, "started_at": started_at, "output_root": repo_path(out_dir)}
-        sse(self, "started", {**scan_meta, "total": len(FINDINGS), "message": "Chromium browser started with a fresh context."})
+        scan_meta = {"scan_id": scan_id, "target": target, "browser": "Chromium", "viewport": {"width": 1440, "height": 1000}, "started_at": started_at, "output_root": repo_path(out_dir), "pattern_ids": pattern_ids}
+        if STORE.get(scan_id):
+            STORE.update(scan_id, status="RUNNING", started_at=started_at)
+        if emit:
+            emit("started", {**scan_meta, "total": len(selected_findings), "message": "Chromium browser started with a fresh context."})
         captured = []
         with sync_playwright() as playwright:
             browser = launch_browser(playwright)
             context = browser.new_context(viewport={"width": 1440, "height": 1000}, color_scheme="light")
             page = context.new_page()
-            for index, finding in enumerate(FINDINGS):
-                sse(self, "stage", {"completed": index, "total": len(FINDINGS), "pattern_id": finding["id"], "route": finding["route"], "selector": finding["selector"], "message": f"Opening {finding['route']} and reading {finding['selector']}"})
+            for index, finding in enumerate(selected_findings):
+                if emit:
+                    emit("stage", {"completed": index, "total": len(selected_findings), "pattern_id": finding["id"], "route": finding["route"], "selector": finding["selector"], "message": f"Opening {finding['route']} and reading {finding['selector']}"})
                 page.goto(target + finding["route"], wait_until="networkidle")
                 locator = page.locator(finding["selector"]).first
                 if locator.count() == 0:
@@ -163,8 +271,9 @@ class Handler(BaseHTTPRequestHandler):
                 result["m2_status"] = "CLASSIFIED" if m2_findings else "NOT_IN_M2_SCOPE"
                 result["m2_findings"] = m2_findings
                 captured.append(result)
-                sse(self, "finding", {"completed": index + 1, "total": len(FINDINGS), "finding": result, "message": f"Captured {finding['id']} screenshot and saved evidence."})
-                sse(self, "classification", {"completed": index + 1, "total": len(FINDINGS), "pattern_id": finding["id"], "status": result["m2_status"], "findings": m2_findings, "message": f"M2 classification {result['m2_status'].lower()} for {finding['id']}."})
+                if emit:
+                    emit("finding", {"completed": index + 1, "total": len(selected_findings), "finding": result, "message": f"Captured {finding['id']} screenshot and saved evidence."})
+                    emit("classification", {"completed": index + 1, "total": len(selected_findings), "pattern_id": finding["id"], "status": result["m2_status"], "findings": m2_findings, "message": f"M2 classification {result['m2_status'].lower()} for {finding['id']}."})
             context.close()
             browser.close()
         finished_at = datetime.now(timezone.utc).isoformat()
@@ -175,7 +284,11 @@ class Handler(BaseHTTPRequestHandler):
         response_path = out_dir / "response.json"
         for path in (scan_path, report_path, response_path):
             write_json(path, report)
-        sse(self, "complete", {"scan_id": scan_id, "completed": len(captured), "total": len(FINDINGS), "findings": captured, "summary": report["summary"], "scan_file": repo_path(scan_path), "report_file": repo_path(report_path), "response_file": repo_path(response_path), "finished_at": finished_at, "message": "Inspection complete — live evidence and M2 classifications ready and saved."})
+        if STORE.get(scan_id):
+            STORE.update(scan_id, status="COMPLETED", finished_at=finished_at, report=report)
+        if emit:
+            emit("complete", {"scan_id": scan_id, "completed": len(captured), "total": len(selected_findings), "findings": captured, "summary": report["summary"], "scan_file": repo_path(scan_path), "report_file": repo_path(report_path), "response_file": repo_path(response_path), "finished_at": finished_at, "message": "Inspection complete — live evidence and M2 classifications ready and saved."})
+        return report
 
 
 if __name__ == "__main__":
